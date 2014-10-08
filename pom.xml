@@ -5,12 +5,35 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>io.indico</groupId>
-    <artifactId>api</artifactId>
-    <version>1.0</version>
+    <artifactId>indico</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
 
-    <name>indico</name>
-    <description></description>
+    <name>Indico</name>
+    <description>Machine learning api</description>
     <url>http://indico.io</url>
+
+    <licenses>
+        <license>
+            <name>The MIT License (MIT)</name>
+            <url>http://opensource.org/licenses/MIT</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <scm>
+        <url>https://github.com/IndicoDataSolutions/IndicoIo-Java</url>
+        <connection>scm:git:https://github.com/IndicoDataSolutions/IndicoIo-Java</connection>
+    </scm>
+
+    <developers>
+        <developer>
+            <id>Anton</id>
+            <name>Anton Golovin</name>
+            <email>antnglvn@gmail.com</email>
+            <timezone>UTC+3</timezone>
+        </developer>
+    </developers>
 
     <properties>
         <jdk.version>1.6</jdk.version>

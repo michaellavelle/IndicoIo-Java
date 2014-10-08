@@ -56,7 +56,6 @@ Examples
             // handle error
         }
     });
-    
 ```
 
 Local
@@ -65,8 +64,7 @@ When using a local version of the api you must remember to change API_URL consta
 
 ``` java
 
-    public final static String API_URL = "http://api.indico.io";
-    
+    public final static String API_URL = "http://api.indico.io"; 
 ```
 
 Announcement: Indico has partnered with Experfy, a data science consulting marketplace based in the Harvard 
