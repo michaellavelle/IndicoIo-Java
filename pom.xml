@@ -23,7 +23,7 @@
         <url>https://github.com/IndicoDataSolutions/IndicoIo-Java.git</url>
         <connection>scm:git:https://github.com/IndicoDataSolutions/IndicoIo-Java.git</connection>
         <developerConnection>scm:git:https://github.com/IndicoDataSolutions/IndicoIo-Java.git</developerConnection>
-      <tag>first</tag>
+      <tag>tag</tag>
   </scm>
 
     <developers>
