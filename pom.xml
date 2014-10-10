@@ -29,9 +29,9 @@
     </licenses>
 
     <scm>
-        <url>https://github.com/IndicoDataSolutions/IndicoIo-Java</url>
-        <connection>scm:git:https://github.com/IndicoDataSolutions/IndicoIo-Java</connection>
-        <developerConnection>scm:git:https://github.com/IndicoDataSolutions/IndicoIo-Java</developerConnection>
+        <url>https://github.com/IndicoDataSolutions/IndicoIo-Java.git</url>
+        <connection>scm:git:https://github.com/IndicoDataSolutions/IndicoIo-Java.git</connection>
+        <developerConnection>scm:git:https://github.com/IndicoDataSolutions/IndicoIo-Java.git</developerConnection>
     </scm>
 
     <developers>
