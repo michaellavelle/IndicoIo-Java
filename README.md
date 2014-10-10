@@ -84,4 +84,4 @@ Announcement: Indico has partnered with Experfy, a data science consulting marke
 Innovation Lab.  Through Experfy, we are helping our data science community members find lucrative projects and advance 
 their skills. Please signup for Experfy at https://www.experfy.com/ to get started.
 
-[2]: http://repository.sonatype.org/service/local/artifact/maven/redirect?r=central-proxy&g=io.indico&a=indico&v=LATEST
+[1]: http://repository.sonatype.org/service/local/artifact/maven/redirect?r=central-proxy&g=io.indico&a=indico&v=LATEST
