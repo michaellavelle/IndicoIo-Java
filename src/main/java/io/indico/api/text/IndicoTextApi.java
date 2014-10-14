@@ -51,11 +51,12 @@ public class IndicoTextApi {
      * @param text               The text to be analyzed.
      * @param onResponseListener Callback which will be called when operation ends.
      */
-    public void language(String text, final OnMapResponseListener<String, Double> onResponseListener) {
-        this.indicoTextService.language(new Text(text), new Callback<Map<String, Double>>() {
+    public void language(String text, final OnMapResponseListener<String, Map<String, Double>> onResponseListener) {
+        this.indicoTextService.language(new Text(text), new Callback<Map<String, Map<String, Double>>>() {
             @Override
-            public void success(Map<String, Double> stringDoubleMap, Response response) {
+            public void success(Map<String, Map<String, Double>> stringDoubleMap, Response response) {
                 onResponseListener.onSuccess(stringDoubleMap);
+
             }
 
             @Override
@@ -75,7 +76,7 @@ public class IndicoTextApi {
      */
     public Map<String, Double> language(String text) throws IndicoException {
         try {
-            return this.indicoTextService.language(new Text(text));
+            return this.indicoTextService.language(new Text(text)).get("results");
         } catch (RetrofitError error) {
             throw ExceptionFactory.get(error);
         }
@@ -88,10 +89,10 @@ public class IndicoTextApi {
      * @param onResponseListener Callback which will be called when operation ends.
      */
     public void politicalSentiment(String text, final OnMapResponseListener<String, Double> onResponseListener) {
-        this.indicoTextService.politicalSentiment(new Text(text), new Callback<Map<String, Double>>() {
+        this.indicoTextService.politicalSentiment(new Text(text), new Callback<Map<String, Map<String, Double>>>() {
             @Override
-            public void success(Map<String, Double> stringDoubleMap, Response response) {
-                onResponseListener.onSuccess(stringDoubleMap);
+            public void success(Map<String, Map<String, Double>> stringDoubleMap, Response response) {
+                onResponseListener.onSuccess(stringDoubleMap.get("results"));
             }
 
             @Override
@@ -110,7 +111,7 @@ public class IndicoTextApi {
      */
     public Map<String, Double> politicalSentiment(String text) throws IndicoException {
         try {
-            return this.indicoTextService.politicalSentiment(new Text(text));
+            return this.indicoTextService.politicalSentiment(new Text(text)).get("results");
         } catch (RetrofitError error) {
             throw ExceptionFactory.get(error);
         }

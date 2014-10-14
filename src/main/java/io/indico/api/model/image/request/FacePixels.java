@@ -8,7 +8,7 @@ import java.util.List;
  * Model is used for creating json object that contains pixels of the face image.
  */
 public class FacePixels {
-    @SerializedName("face")
+    @SerializedName("data")
     private List<List<Double>> pixels;
 
     public FacePixels(List<List<Double>> pixels) {

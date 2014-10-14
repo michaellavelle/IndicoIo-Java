@@ -15,16 +15,16 @@ interface IndicoTextService {
     String PATH_SENTIMENT = "/sentiment";
 
     @POST(PATH_LANGUAGE)
-    void language(@Body Text text, Callback<Map<String, Double>> callback);
+    void language(@Body Text text, Callback<Map<String, Map<String, Double>>> callback);
 
     @POST(PATH_LANGUAGE)
-    Map<String, Double> language(@Body Text text);
+    Map<String, Map<String, Double>> language(@Body Text text);
 
     @POST(PATH_POLITICAL)
-    void politicalSentiment(@Body Text text, Callback<Map<String, Double>> callback);
+    void politicalSentiment(@Body Text text, Callback<Map<String, Map<String, Double>>> callback);
 
     @POST(PATH_POLITICAL)
-    Map<String, Double> politicalSentiment(@Body Text text);
+    Map<String, Map<String, Double>> politicalSentiment(@Body Text text);
 
     @POST(PATH_SENTIMENT)
     void sentiment(@Body Text text, Callback<Sentiment> callback);

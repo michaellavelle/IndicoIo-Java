@@ -30,7 +30,6 @@ public class IndicoImageApi {
         RestAdapter adapter = new RestAdapter.Builder()
                 .setEndpoint(Config.API_URL)
                 .build();
-
         indicoImageService = adapter.create(IndicoImageService.class);
     }
 
@@ -60,7 +59,7 @@ public class IndicoImageApi {
         this.indicoImageService.facialFeatures(new FacePixels(pixels), new Callback<FacialFeatures>() {
             @Override
             public void success(FacialFeatures facialFeatures, Response response) {
-                List<Double> features = facialFeatures.getValue();
+                List<Double> features = facialFeatures.getValue().get("results");
 
                 responseListener.onSuccess(features);
             }
@@ -83,7 +82,7 @@ public class IndicoImageApi {
      * @throws IndicoException
      */
     public List<Double> facialFeatures(List<List<Double>> pixels) throws IndicoException {
-        try {
+       // try {
             FacialFeatures facialFeatures = this.indicoImageService.facialFeatures(new FacePixels(pixels));
             List<Double> features = facialFeatures.getValue();
 
@@ -93,9 +92,9 @@ public class IndicoImageApi {
 
             return features;
 
-        } catch (RetrofitError error) {
-            throw ExceptionFactory.get(error);
-        }
+       // } catch (RetrofitError error) {
+       //     throw ExceptionFactory.get(error);
+       // }
     }
 
     /**
@@ -175,12 +174,12 @@ public class IndicoImageApi {
      * @param pixels           Pixels of the image to be analyzed.
      * @param responseListener Callback which will be called when operation ends.
      */
-    public void emotionalState(List<List<Double>> pixels, final OnMapResponseListener<String, Double>
+    public void emotionalState(List<List<Double>> pixels, final OnMapResponseListener<String, Map<String, Double>>
             responseListener) {
 
-        this.indicoImageService.emotionalState(new FacePixels(pixels), new Callback<Map<String, Double>>() {
+        this.indicoImageService.emotionalState(new FacePixels(pixels), new Callback<Map<String, Map<String, Double>>>() {
             @Override
-            public void success(Map<String, Double> stringDoubleMap, Response response) {
+            public void success(Map<String, Map<String, Double>> stringDoubleMap, Response response) {
                 responseListener.onSuccess(stringDoubleMap);
             }
 

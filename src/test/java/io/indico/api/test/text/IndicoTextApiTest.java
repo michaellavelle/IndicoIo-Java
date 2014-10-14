@@ -40,7 +40,7 @@ public class IndicoTextApiTest {
         shouldBe.add("Conservative");
         shouldBe.add("Green");
 
-        Map<String, Double> response = Indico.text().politicalSentiment("Religion is the opium for people");
+       Map<String, Double> response = Indico.text().politicalSentiment("Religion is the opium for people");
 
         assertTrue(response.keySet().containsAll(shouldBe));
     }

@@ -16,7 +16,7 @@ interface IndicoImageService {
     String PATH_FACIAL_FEATURES = "/facialfeatures";
 
     @POST(PATH_EMOTIONAL_STATE)
-    public void emotionalState(@Body FacePixels facePixels, Callback<Map<String, Double>> callback);
+    public void emotionalState(@Body FacePixels facePixels, Callback<Map<String, Map<String, Double>>> callback);
 
     @POST(PATH_EMOTIONAL_STATE)
     public Map<String, Double> emotionalState(@Body FacePixels facePixels);

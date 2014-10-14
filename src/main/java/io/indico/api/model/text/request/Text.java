@@ -5,8 +5,8 @@ package io.indico.api.model.text.request;
  */
 public class Text {
     public Text(String text) {
-        this.text = text;
+        this.data = text;
     }
 
-    private String text;
+    private String data;
 }
