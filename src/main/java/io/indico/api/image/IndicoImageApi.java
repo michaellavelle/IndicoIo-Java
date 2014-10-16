@@ -59,7 +59,7 @@ public class IndicoImageApi {
         this.indicoImageService.facialFeatures(new FacePixels(pixels), new Callback<FacialFeatures>() {
             @Override
             public void success(FacialFeatures facialFeatures, Response response) {
-                List<Double> features = facialFeatures.getValue().get("results");
+                List<Double> features = facialFeatures.getValue();
 
                 responseListener.onSuccess(features);
             }
@@ -82,7 +82,7 @@ public class IndicoImageApi {
      * @throws IndicoException
      */
     public List<Double> facialFeatures(List<List<Double>> pixels) throws IndicoException {
-       // try {
+        try {
             FacialFeatures facialFeatures = this.indicoImageService.facialFeatures(new FacePixels(pixels));
             List<Double> features = facialFeatures.getValue();
 
@@ -92,9 +92,9 @@ public class IndicoImageApi {
 
             return features;
 
-       // } catch (RetrofitError error) {
-       //     throw ExceptionFactory.get(error);
-       // }
+        } catch (RetrofitError error) {
+            throw ExceptionFactory.get(error);
+        }
     }
 
     /**

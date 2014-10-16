@@ -10,9 +10,10 @@ import java.util.Map;
  */
 public class ImageFeatures {
 
-    private Map<String, List<Double>> features;
+    @SerializedName("results")
+    private List<Double> results;
 
     public List<Double> getFeatures() {
-        return features.get("results");
+        return results;
     }
 }

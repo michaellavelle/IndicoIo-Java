@@ -11,10 +11,9 @@ import com.google.gson.annotations.SerializedName;
  */
 public class FacialFeatures extends Error{
 
-    private Map<String, List<Double>> response;
+    private List<Double> results;
 
-    public Map<String, List<Double>> getValue() {
-        System.out.println(response);
-        return response;
+    public  List<Double> getValue() {
+        return results;
     }
 }
