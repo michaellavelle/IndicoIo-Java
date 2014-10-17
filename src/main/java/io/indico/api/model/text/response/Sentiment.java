@@ -7,7 +7,7 @@ import com.google.gson.annotations.SerializedName;
  */
 public class Sentiment {
 
-    @SerializedName("Sentiment")
+    @SerializedName("results")
     private double sentiment;
 
     public double getValue() {

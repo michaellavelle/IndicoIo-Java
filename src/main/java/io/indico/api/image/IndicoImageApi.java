@@ -30,7 +30,6 @@ public class IndicoImageApi {
         RestAdapter adapter = new RestAdapter.Builder()
                 .setEndpoint(Config.API_URL)
                 .build();
-
         indicoImageService = adapter.create(IndicoImageService.class);
     }
 
@@ -178,10 +177,10 @@ public class IndicoImageApi {
     public void emotionalState(List<List<Double>> pixels, final OnMapResponseListener<String, Double>
             responseListener) {
 
-        this.indicoImageService.emotionalState(new FacePixels(pixels), new Callback<Map<String, Double>>() {
+        this.indicoImageService.emotionalState(new FacePixels(pixels), new Callback<Map<String, Map<String, Double>>>() {
             @Override
-            public void success(Map<String, Double> stringDoubleMap, Response response) {
-                responseListener.onSuccess(stringDoubleMap);
+            public void success(Map<String, Map<String, Double>> stringDoubleMap, Response response) {
+                responseListener.onSuccess(stringDoubleMap.get("results"));
             }
 
             @Override
@@ -202,7 +201,7 @@ public class IndicoImageApi {
      */
     public Map<String, Double> emotionalState(List<List<Double>> pixels) throws IndicoException {
         try {
-            return this.indicoImageService.emotionalState(new FacePixels(pixels));
+            return this.indicoImageService.emotionalState(new FacePixels(pixels)).get("results");
         } catch (RetrofitError error) {
             throw ExceptionFactory.get(error);
         }

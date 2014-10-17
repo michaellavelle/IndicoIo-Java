@@ -8,7 +8,7 @@ import java.util.List;
  * Model is used for creating json object that contains pixels of the image.
  */
 public class ImagePixels {
-    @SerializedName("image")
+    @SerializedName("data")
     private List<List<Double>> pixels;
 
     public ImagePixels(List<List<Double>> pixels) {
