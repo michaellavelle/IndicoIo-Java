@@ -11,6 +11,5 @@ public class ServerException extends IndicoException {
 
     public ServerException(Throwable cause) {
         super(EXCEPTION_MESSAGE, cause);
-        System.out.println(cause);
     }
 }

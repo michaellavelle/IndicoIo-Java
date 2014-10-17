@@ -28,17 +28,10 @@ public class IndicoImageImageApiTest {
 
     @Test
     public void facialFeaturesTest() throws IndicoException {
-        List<List<Double>> matrix = buildMatrix(48); // strict 48
+        List<List<Double>> matrix = buildMatrix(48);
 
         List<Double> result = Indico.image().facialFeatures(matrix);
         assertEquals(48, result.size());
-    }
-
-    @Test(expected = ParameterException.class)
-    public void facialFeatureWrongMatrixSizeTest() throws IndicoException {
-        List<List<Double>> pixels = buildMatrix(30);
-
-        Indico.image().facialFeatures(pixels);
     }
 
     @Test

@@ -55,9 +55,8 @@ public class IndicoTextApiTest {
     @Test
     public void sentimentResponseLimitsTest() throws IndicoException {
         double value = Indico.text().sentiment("Bad news");
-        System.out.println(value);
 
         assertTrue(value >= 0);
-        assertTrue(value <= 1);
+        assertTrue(value <= 0.5);
     }
 }

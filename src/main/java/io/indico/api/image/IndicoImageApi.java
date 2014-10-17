@@ -174,13 +174,13 @@ public class IndicoImageApi {
      * @param pixels           Pixels of the image to be analyzed.
      * @param responseListener Callback which will be called when operation ends.
      */
-    public void emotionalState(List<List<Double>> pixels, final OnMapResponseListener<String, Map<String, Double>>
+    public void emotionalState(List<List<Double>> pixels, final OnMapResponseListener<String, Double>
             responseListener) {
 
         this.indicoImageService.emotionalState(new FacePixels(pixels), new Callback<Map<String, Map<String, Double>>>() {
             @Override
             public void success(Map<String, Map<String, Double>> stringDoubleMap, Response response) {
-                responseListener.onSuccess(stringDoubleMap);
+                responseListener.onSuccess(stringDoubleMap.get("results"));
             }
 
             @Override
@@ -201,7 +201,7 @@ public class IndicoImageApi {
      */
     public Map<String, Double> emotionalState(List<List<Double>> pixels) throws IndicoException {
         try {
-            return this.indicoImageService.emotionalState(new FacePixels(pixels));
+            return this.indicoImageService.emotionalState(new FacePixels(pixels)).get("results");
         } catch (RetrofitError error) {
             throw ExceptionFactory.get(error);
         }

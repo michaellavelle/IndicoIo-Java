@@ -19,7 +19,7 @@ interface IndicoImageService {
     public void emotionalState(@Body FacePixels facePixels, Callback<Map<String, Map<String, Double>>> callback);
 
     @POST(PATH_EMOTIONAL_STATE)
-    public Map<String, Double> emotionalState(@Body FacePixels facePixels);
+    public Map<String, Map<String, Double>> emotionalState(@Body FacePixels facePixels);
 
     @POST(PATH_IMAGE_FEATURES)
     public void imageFeatures(@Body ImagePixels imagePixels, Callback<ImageFeatures> callback);
