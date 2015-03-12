@@ -1,18 +1,22 @@
 package io.indico.api.text;
 
+import java.util.Map;
+import java.util.HashMap;
+import java.util.List;
+
+import retrofit.Callback;
+import retrofit.RestAdapter;
+import retrofit.RetrofitError;
+import retrofit.client.Response;
+import biz.source_code.base64Coder.Base64Coder;
+
 import io.indico.api.Config;
 import io.indico.api.exception.ExceptionFactory;
 import io.indico.api.exception.IndicoException;
 import io.indico.api.listener.OnMapResponseListener;
 import io.indico.api.listener.OnObjectResponseListener;
 import io.indico.api.model.text.request.Text;
-import io.indico.api.model.text.response.Sentiment;
-import retrofit.Callback;
-import retrofit.RestAdapter;
-import retrofit.RetrofitError;
-import retrofit.client.Response;
-
-import java.util.Map;
+import io.indico.api.model.text.request.TextList;
 
 /**
  * Api for work with text.
@@ -31,6 +35,15 @@ public class IndicoTextApi {
         indicoTextService = adapter.create(IndicoTextService.class);
     }
 
+    private IndicoTextService IndicoTextApi(String cloudUrl) {
+        String fullUrl = "http://" + cloudUrl + ".indico.domains";
+        RestAdapter adapter = new RestAdapter.Builder()
+                .setEndpoint(fullUrl)
+                .build();
+
+        return adapter.create(IndicoTextService.class);
+    }
+
     /**
      * Returns instance of the api for work with text.
      *
@@ -45,116 +58,447 @@ public class IndicoTextApi {
     }
 
     /**
-     * Given input text, returns a probability distribution over 33 possible languages of what language
-     * the text was written in.
-     *
-     * @param text               The text to be analyzed.
-     * @param onResponseListener Callback which will be called when operation ends.
+     * Returns either an indicoTextService with the endpoint
+     * or, if it exists, the endpoint set in the parameter 'cloud' in auth
      */
-    public void language(String text, final OnMapResponseListener<String, Map<String, Double>> onResponseListener) {
-        this.indicoTextService.language(new Text(text), new Callback<Map<String, Map<String, Double>>>() {
-            @Override
-            public void success(Map<String, Map<String, Double>> stringDoubleMap, Response response) {
-                onResponseListener.onSuccess(stringDoubleMap);
-
-            }
-
-            @Override
-            public void failure(RetrofitError retrofitError) {
-                onResponseListener.onError(ExceptionFactory.get(retrofitError));
-            }
-        });
+    private IndicoTextService whichTextService(Map<String, String> auth) {
+        if (auth != null && auth.get("cloud") != null) {
+            return IndicoTextApi(auth.get("cloud"));
+        } else {
+            return this.indicoTextService;
+        }
     }
 
     /**
      * Given input text, returns a probability distribution over 33 possible languages of what language
      * the text was written in.
      *
-     * @param text The text to be analyzed.
+     * @param text: The text to be analyzed.
+     * @param auth: a map optionally containning a username, password, and cloud url.
+     * @param onResponseListener: Callback which will be called when operation ends.
+     */
+    public void language(String text, Map<String, String> auth, final OnMapResponseListener<String, Map<String, Double>> onResponseListener) {
+        Callback<Map<String, Map<String, Double>>> callback = new Callback<Map<String, Map<String, Double>>>() {
+                @Override
+                public void success(Map<String, Map<String, Double>> stringDoubleMap, Response response) {
+                    onResponseListener.onSuccess(stringDoubleMap);
+                }
+
+                @Override
+                public void failure(RetrofitError retrofitError) {
+                    onResponseListener.onError(ExceptionFactory.get(retrofitError));
+                }
+            };
+
+        IndicoTextService thisIndicoTextService = whichTextService(auth);
+        if (auth != null && auth.get("cloud") != null) {
+            String credentials= encodeCredentials(auth.get("username"), auth.get("password"));
+            thisIndicoTextService.language(new Text(text), credentials, callback);
+        } else {
+            thisIndicoTextService.language(new Text(text), callback);
+        }
+    }
+
+    /**
+     * Given a list of input texts, returns a list of a probability distribution over 33 possible
+     * languages of what language each text was written in.
+     *
+     * @param text: The text to be analyzed.
+     * @param auth: a map optionally containning a username, password, and cloud url.
+     * @param onResponseListener: Callback which will be called when operation ends.
+     */
+    public void batchLanguage(List<String> text, Map<String, String> auth, final OnMapResponseListener<String, List<Map<String, Double>>> onResponseListener){
+        Callback<Map<String, List<Map<String, Double>>>> callback = new Callback<Map<String, List<Map<String, Double>>>>() {
+                @Override
+                public void success(Map<String, List<Map<String, Double>>> stringDoubleMap, Response response) {
+                    onResponseListener.onSuccess(stringDoubleMap);
+                }
+
+                @Override
+                public void failure(RetrofitError retrofitError) {
+                    onResponseListener.onError(ExceptionFactory.get(retrofitError));
+                }
+            };
+
+        IndicoTextService thisIndicoTextService = whichTextService(auth);
+        String credentials= encodeCredentials(auth.get("username"), auth.get("password"));
+        thisIndicoTextService.batchLanguage(new TextList(text), credentials, callback);
+    }
+
+    /**
+     * Given input text, returns a probability distribution over 33 possible languages of what language
+     * the text was written in.
+     *
+     * @param text: The text to be analyzed.
+     * @param auth: a map optionally containning a username, password, and cloud url.
      * @return Language probability pairs.
      * @throws IndicoException
      */
-    public Map<String, Double> language(String text) throws IndicoException {
+    public Map<String, Double> language(String text, Map<String, String> auth) throws IndicoException {
         try {
-            return this.indicoTextService.language(new Text(text)).get("results");
+            IndicoTextService thisIndicoTextService = whichTextService(auth);
+            if (auth != null && auth.get("cloud") != null) {
+                return thisIndicoTextService.language(new Text(text), encodeCredentials(auth.get("username"), auth.get("password"))).get("results");
+            } else {
+                return thisIndicoTextService.language(new Text(text)).get("results");
+            }
         } catch (RetrofitError error) {
             throw ExceptionFactory.get(error);
         }
     }
 
-    /**
-     * Given input text, returns a probability distribution over the political alignment of the speaker.
-     *
-     * @param text               The text to be analyzed.
-     * @param onResponseListener Callback which will be called when operation ends.
-     */
-    public void politicalSentiment(String text, final OnMapResponseListener<String, Double> onResponseListener) {
-        this.indicoTextService.politicalSentiment(new Text(text), new Callback<Map<String, Map<String, Double>>>() {
-            @Override
-            public void success(Map<String, Map<String, Double>> stringDoubleMap, Response response) {
-                onResponseListener.onSuccess(stringDoubleMap.get("results"));
-            }
+    public void language(String text, final OnMapResponseListener<String, Map<String, Double>> onResponseListener) {
+        language(text, null, onResponseListener);
+    }
 
-            @Override
-            public void failure(RetrofitError retrofitError) {
-                onResponseListener.onError(ExceptionFactory.get(retrofitError));
-            }
-        });
+    public Map<String, Double> language(String text) throws IndicoException {
+        HashMap<String, String> emptyHash = new HashMap<String, String>();
+        return language(text, emptyHash);
     }
 
     /**
+     * Given a list of input texts, returns a list of a probability distribution over 33 possible
+     * languages of what language each text was written in.
+     *
+     * @param text: A list of the text to be analyzed.
+     * @param auth: a map optionally containning a username, password, and cloud url.
+     * @param onResponseListener: Callback which will be called when operation ends.
+     */
+    public List<Map<String, Double>> batchLanguage(List<String> text, Map<String, String> auth) throws IndicoException {
+        try {
+            IndicoTextService thisIndicoTextService = whichTextService(auth);
+            return thisIndicoTextService.batchLanguage(new TextList(text), encodeCredentials(auth.get("username"), auth.get("password"))).get("results");
+        } catch (RetrofitError error) {
+            throw ExceptionFactory.get(error);
+        }
+    }
+
+
+
+    /**
      * Given input text, returns a probability distribution over the political alignment of the speaker.
      *
-     * @param text The text to be analyzed.
+     * @param text: The text to be analyzed.
+     * @param auth: a map optionally containning a username, password, and cloud url.
+     * @param onResponseListener: Callback which will be called when operation ends.
+     */
+    public void politicalSentiment(String text, Map<String, String> auth, final OnMapResponseListener<String, Map<String, Double>> onResponseListener) {
+        Callback<Map<String, Map<String, Double>>> callback = new Callback<Map<String, Map<String, Double>>>() {
+                @Override
+                public void success(Map<String, Map<String, Double>> stringDoubleMap, Response response) {
+                    onResponseListener.onSuccess(stringDoubleMap);
+                }
+
+                @Override
+                public void failure(RetrofitError retrofitError) {
+                    onResponseListener.onError(ExceptionFactory.get(retrofitError));
+                }
+            };
+
+        IndicoTextService thisIndicoTextService = whichTextService(auth);
+        if (auth != null && auth.get("cloud") != null) {
+            String credentials= encodeCredentials(auth.get("username"), auth.get("password"));
+            thisIndicoTextService.politicalSentiment(new Text(text), credentials, callback);
+        } else {
+            thisIndicoTextService.politicalSentiment(new Text(text), callback);
+        }
+    }
+
+    /**
+     * Given a list of input texts, returns a list of probability distributions over the political alignment of the speakers
+     *
+     * @param text: The text to be analyzed.
+     * @param auth: a map optionally containning a username, password, and cloud url.
+     * @param onResponseListener: Callback which will be called when operation ends.
+     */
+    public void batchPoliticalSentiment(List<String> text, Map<String, String> auth, final OnMapResponseListener<String, List<Map<String, Double>>> onResponseListener){
+        Callback<Map<String, List<Map<String, Double>>>> callback = new Callback<Map<String, List<Map<String, Double>>>>() {
+                @Override
+                public void success(Map<String, List<Map<String, Double>>> stringDoubleMap, Response response) {
+                    onResponseListener.onSuccess(stringDoubleMap);
+                }
+
+                @Override
+                public void failure(RetrofitError retrofitError) {
+                    onResponseListener.onError(ExceptionFactory.get(retrofitError));
+                }
+            };
+
+        IndicoTextService thisIndicoTextService = whichTextService(auth);
+        String credentials= encodeCredentials(auth.get("username"), auth.get("password"));
+        thisIndicoTextService.batchPoliticalSentiment(new TextList(text), credentials, callback);
+    }
+
+     /**
+     * Given input text, returns a probability distribution over the political alignment of the speaker.
+     *
+     * @param text: The text to be analyzed.
+     * @param auth: a map optionally containning a username, password, and cloud url.
      * @return Political alignment probability pairs.
      * @throws IndicoException
      */
-    public Map<String, Double> politicalSentiment(String text) throws IndicoException {
+    public Map<String, Double> politicalSentiment(String text, Map<String, String> auth) throws IndicoException {
         try {
-            return this.indicoTextService.politicalSentiment(new Text(text)).get("results");
+            IndicoTextService thisIndicoTextService = whichTextService(auth);
+            if (auth != null && auth.get("cloud") != null) {
+                return thisIndicoTextService.politicalSentiment(new Text(text), encodeCredentials(auth.get("username"), auth.get("password"))).get("results");
+            } else {
+                return thisIndicoTextService.politicalSentiment(new Text(text)).get("results");
+            }
         } catch (RetrofitError error) {
             throw ExceptionFactory.get(error);
         }
     }
 
-    /**
-     * Given input text, returns a scalar estimate of the sentiment of that text.
-     * Values are roughly in the range 0 to 1 with 0.5 indicating neutral sentiment.
-     * For reference, 0 suggests very negative sentiment and 1 suggests very positive sentiment.
-     *
-     * @param text             The text to be analyzed.
-     * @param responseListener Callback which will be called when operation ends.
-     */
-    public void sentiment(String text, final OnObjectResponseListener<Double> responseListener) {
-        this.indicoTextService.sentiment(new Text(text), new Callback<Sentiment>() {
-            @Override
-            public void success(Sentiment sentiment, Response response) {
-                responseListener.onSuccess(sentiment.getValue());
-            }
+    public void politicalSentiment(String text, final OnMapResponseListener<String, Map<String, Double>> onResponseListener) {
+        politicalSentiment(text, null, onResponseListener);
+    }
 
-            @Override
-            public void failure(RetrofitError retrofitError) {
-                responseListener.onError(ExceptionFactory.get(retrofitError));
-            }
-        });
+    public Map<String, Double> politicalSentiment(String text) throws IndicoException {
+        HashMap<String, String> emptyHash = new HashMap<String, String>();
+        return politicalSentiment(text, emptyHash);
+    }
+
+
+    /**
+     * Given a list of input texts, returns a list of probability distributions over the political alignment of the speakers
+     *
+     * @param text: The text to be analyzed.
+     * @param auth: a map optionally containning a username, password, and cloud url.
+     * @param onResponseListener: Callback which will be called when operation ends.
+     */
+    public List<Map<String, Double>> batchPoliticalSentiment(List<String> text, Map<String, String> auth) throws IndicoException {
+        try {
+            IndicoTextService thisIndicoTextService = whichTextService(auth);
+            return thisIndicoTextService.batchPoliticalSentiment(new TextList(text), encodeCredentials(auth.get("username"), auth.get("password"))).get("results");
+        } catch (RetrofitError error) {
+            throw ExceptionFactory.get(error);
+        }
+    }
+
+
+
+    /**
+     * Given input text, returns a probability distribution over the topics it could be about.
+     *
+     * @param text: The text to be analyzed.
+     * @param auth: a map optionally containning a username, password, and cloud url.
+     * @param onResponseListener: Callback which will be called when operation ends.
+     */
+    public void textTags(String text, Map<String, String> auth, final OnMapResponseListener<String, Map<String, Double>> onResponseListener) {
+        Callback<Map<String, Map<String, Double>>> callback = new Callback<Map<String, Map<String, Double>>>() {
+                @Override
+                public void success(Map<String, Map<String, Double>> stringDoubleMap, Response response) {
+                    onResponseListener.onSuccess(stringDoubleMap);
+                }
+
+                @Override
+                public void failure(RetrofitError retrofitError) {
+                    onResponseListener.onError(ExceptionFactory.get(retrofitError));
+                }
+            };
+
+        IndicoTextService thisIndicoTextService = whichTextService(auth);
+        if (auth != null && auth.get("cloud") != null) {
+            String credentials= encodeCredentials(auth.get("username"), auth.get("password"));
+            thisIndicoTextService.textTags(new Text(text), credentials, callback);
+        } else {
+            thisIndicoTextService.textTags(new Text(text), callback);
+        }
     }
 
     /**
+     * Given a list of input texts, returns a list of probability distributions over the political alignment of the speakers
+     *
+     * @param text: The text to be analyzed.
+     * @param auth: a map optionally containning a username, password, and cloud url.
+     */
+    public void batchTextTags(List<String> text, Map<String, String> auth, final OnMapResponseListener<String, List<Map<String, Double>>> onResponseListener){
+        Callback<Map<String, List<Map<String, Double>>>> callback = new Callback<Map<String, List<Map<String, Double>>>>() {
+                @Override
+                public void success(Map<String, List<Map<String, Double>>> stringDoubleMap, Response response) {
+                    onResponseListener.onSuccess(stringDoubleMap);
+                }
+
+                @Override
+                public void failure(RetrofitError retrofitError) {
+                    onResponseListener.onError(ExceptionFactory.get(retrofitError));
+                }
+            };
+
+        IndicoTextService thisIndicoTextService = whichTextService(auth);
+        String credentials= encodeCredentials(auth.get("username"), auth.get("password"));
+        thisIndicoTextService.batchTextTags(new TextList(text), credentials, callback);
+    }
+
+    /**
+     * Given input text, returns a probability distribution over the topics it could be about.
+     *
+     * @param text: The text to be analyzed.
+     * @param auth: a map optionally containning a username, password, and cloud url.
+     * @return Political alignment probability pairs.
+     * @throws IndicoException
+     */
+    public Map<String, Double> textTags(String text, Map<String, String> auth) throws IndicoException {
+        try {
+            IndicoTextService thisIndicoTextService = whichTextService(auth);
+            if (auth != null && auth.get("cloud") != null) {
+                return thisIndicoTextService.textTags(new Text(text), encodeCredentials(auth.get("username"), auth.get("password"))).get("results");
+            } else {
+                return thisIndicoTextService.textTags(new Text(text)).get("results");
+            }
+        } catch (RetrofitError error) {
+            throw ExceptionFactory.get(error);
+        }
+    }
+
+    public void textTags(String text, final OnMapResponseListener<String, Map<String, Double>> onResponseListener) {
+        textTags(text, null, onResponseListener);
+    }
+
+    public Map<String, Double> textTags(String text) throws IndicoException {
+        HashMap<String, String> emptyHash = new HashMap<String, String>();
+        return textTags(text, emptyHash);
+    }
+
+
+    /**
+     * Given a list of input texts, returns a list of probability distributions over the political alignment of the speakers
+     *
+     * @param text: The text to be analyzed.
+     * @param auth: a map optionally containning a username, password, and cloud url.
+     * @return A list of TextTags probability pairs.
+     * @throws IndicoException
+     */
+    public List<Map<String, Double>> batchTextTags(List<String> text, Map<String, String> auth) throws IndicoException {
+        try {
+            IndicoTextService thisIndicoTextService = whichTextService(auth);
+            return thisIndicoTextService.batchTextTags(new TextList(text), encodeCredentials(auth.get("username"), auth.get("password"))).get("results");
+        } catch (RetrofitError error) {
+            throw ExceptionFactory.get(error);
+        }
+    }
+
+
+
+    /**
      * Given input text, returns a scalar estimate of the sentiment of that text.
      * Values are roughly in the range 0 to 1 with 0.5 indicating neutral sentiment.
      * For reference, 0 suggests very negative sentiment and 1 suggests very positive sentiment.
      *
-     * @param text The text to be analyzed.
+     * @param text: The text to be analyzed.
+     * @param auth: a map optionally containning a username, password, and cloud url.
      * @return Value that indicates sentiment.
      * @throws IndicoException
      */
-    public double sentiment(String text) throws IndicoException {
-        try {
-            Sentiment sentiment = this.indicoTextService.sentiment(new Text(text));
+    public void sentiment(String text, Map<String, String> auth, final OnMapResponseListener<String, Double> onResponseListener) {
+        Callback<Map<String, Double>> callback = new Callback<Map<String, Double>>() {
+                @Override
+                public void success(Map<String, Double> stringDoubleMap, Response response) {
+                    onResponseListener.onSuccess(stringDoubleMap);
+                }
 
-            return sentiment.getValue();
+                @Override
+                public void failure(RetrofitError retrofitError) {
+                    onResponseListener.onError(ExceptionFactory.get(retrofitError));
+                }
+            };
+
+        IndicoTextService thisIndicoTextService = whichTextService(auth);
+        if (auth != null && auth.get("cloud") != null) {
+            String credentials= encodeCredentials(auth.get("username"), auth.get("password"));
+            thisIndicoTextService.sentiment(new Text(text), credentials, callback);
+        } else {
+            thisIndicoTextService.sentiment(new Text(text), callback);
+        }
+    }
+
+    /**
+     * Given a list of input texts, returns a list of scalar estimates of the sentiments of those texts.
+     * Values are roughly in the range 0 to 1 with 0.5 indicating neutral sentiment.
+     * For reference, 0 suggests very negative sentiment and 1 suggests very positive sentiment.
+     *
+     * @param text: The text to be analyzed.
+     * @param auth: a map optionally containning a username, password, and cloud url.
+     * @return  A list of values that indicates sentiment of each text
+     * @throws IndicoException
+     *
+     */
+    public void batchSentiment(List<String> text, Map<String, String> auth, final OnMapResponseListener<String, List<Double>> onResponseListener){
+        Callback<Map<String, List<Double>>> callback = new Callback<Map<String, List<Double>>>() {
+                @Override
+                public void success(Map<String, List<Double>> stringDoubleMap, Response response) {
+                    onResponseListener.onSuccess(stringDoubleMap);
+                }
+
+                @Override
+                public void failure(RetrofitError retrofitError) {
+                    onResponseListener.onError(ExceptionFactory.get(retrofitError));
+                }
+            };
+
+        IndicoTextService thisIndicoTextService = whichTextService(auth);
+        String credentials= encodeCredentials(auth.get("username"), auth.get("password"));
+        thisIndicoTextService.batchSentiment(new TextList(text), credentials, callback);
+    }
+
+    /**
+     * Given a list of input texts, returns a list of scalar estimates of the sentiments of those texts.
+     * Values are roughly in the range 0 to 1 with 0.5 indicating neutral sentiment.
+     * For reference, 0 suggests very negative sentiment and 1 suggests very positive sentiment.
+     *
+     * @param text: The text to be analyzed.
+     * @param auth: a map optionally containning a username, password, and cloud url.
+     * @return Values that indicates sentiment.
+     * @throws IndicoException
+     *
+     */
+    public Double sentiment(String text, Map<String, String> auth) throws IndicoException {
+        try {
+            IndicoTextService thisIndicoTextService = whichTextService(auth);
+            if (auth != null && auth.get("cloud") != null) {
+                return thisIndicoTextService.sentiment(new Text(text), encodeCredentials(auth.get("username"), auth.get("password"))).get("results");
+            } else {
+                return thisIndicoTextService.sentiment(new Text(text)).get("results");
+            }
         } catch (RetrofitError error) {
             throw ExceptionFactory.get(error);
         }
+    }
+
+    public void sentiment(String text, final OnMapResponseListener<String, Double> onResponseListener) {
+        sentiment(text, null, onResponseListener);
+    }
+
+    public Double sentiment(String text) throws IndicoException {
+        HashMap<String, String> emptyHash = new HashMap<String, String>();
+        return sentiment(text, emptyHash);
+    }
+
+
+    /**
+     * Given a list of input texts, returns a list of scalar estimates of the sentiments of those texts.
+     * Values are roughly in the range 0 to 1 with 0.5 indicating neutral sentiment.
+     * For reference, 0 suggests very negative sentiment and 1 suggests very positive sentiment.
+     *
+     * @param text: The text to be analyzed.
+     * @param auth: a map optionally containning a username, password, and cloud url.
+     * @return  A list of values that indicates sentiment of each text
+     * @throws IndicoException
+     *
+     */
+    public List<Double> batchSentiment(List<String> text, Map<String, String> auth) throws IndicoException {
+        try {
+            IndicoTextService thisIndicoTextService = whichTextService(auth);
+            return thisIndicoTextService.batchSentiment(new TextList(text), encodeCredentials(auth.get("username"), auth.get("password"))).get("results");
+        } catch (RetrofitError error) {
+            throw ExceptionFactory.get(error);
+        }
+    }
+
+
+    private static String encodeCredentials(String username, String password) {
+        final String credentials = username + ":" + password;
+        return "Basic " + Base64Coder.encodeString(credentials);
     }
 }
