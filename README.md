@@ -21,6 +21,7 @@ Right now this wrapper supports the following apps:
 - Positive / Negative Sentiment Analysis;
 - Political Sentiment Analysis;
 - Language Detection.
+- Text Tagging
 - Image Feature Extraction;
 - Facial Emotion Recognition;
 - Facial Feature Extraction;
@@ -76,6 +77,95 @@ or Gradle:
 compile 'io.indico:indico:1.1-SNAPSHOT'
 ```
 
-
 [1]: https://oss.sonatype.org/content/repositories/snapshots/io/indico/indico/1.1-SNAPSHOT/indico-1.1-20150407.205410-4.jar
 
+Batch API Access
+----------------
+
+If you'd like to use our batch api interface, please check out the [pricing page](https://indico.io/pricing) on our website to find the right plan for you.
+
+```java
+List<String> textData = Arrays.asList("Bad news","Good news");
+List<Double> value = Indico.text().batchSentiment(textData);
+
+assertTrue(value.get(0) >= 0);
+assertTrue(value.get(0) <= 0.5);
+
+assertTrue(value.get(1) >= 0.5);
+assertTrue(value.get(1) <= 1);
+```
+
+Private cloud API Access
+------------------------
+
+If you're looking to use indico's API for high throughput applications, please check out the [pricing page](https://indico.io/pricing) on our website to find the right plan for you.
+
+```java
+public static final Map<String, String> config;
+static
+{
+    config = new HashMap<String, String>();
+    auth.put("cloud" , "test-cloud");
+}
+
+double value = Indico.text().sentiment("Bad news", config);
+System.out.println(value);
+// 0.19165873789277
+```
+
+The `cloud` parameter in config redirects API calls to your private cloud hosted at `[cloud].indico.domains`
+
+Private cloud subdomains can also be set as the environment variable `$INDICO_CLOUD` or as `cloud` in the indicorc file. Additionally, the cloud parameter can be set with a single call to `Indico.setPrivateCloud(String cloud)`, causing all subsequent api calls to be made to `cloud`.
+
+Configuration
+------------------------
+
+Indicoio-java will search ./.indicorc and $HOME/.indicorc for the optional configuration file. Values in the local configuration file (./.indicorc) take precedence over those found in a global configuration file ($HOME/.indicorc). The indicorc file can be used to set an authentication username and password or a private cloud subdomain, so these arguments don't need to be specified for every api call. All sections are optional.
+
+Here is an example of a valid indicorc file:
+
+
+```
+[auth]
+api_key=example-api-key
+
+[private_cloud]
+cloud = example
+```
+
+Environment variables take precedence over any configuration found in the indicorc file.
+The following environment variables are valid:
+
+```
+$INDICO_API_KEY
+$INDICO_CLOUD
+```
+
+Variables set with a `Indico.setPrivateCloud(String cloud)` or `Indico.setApiKey(String apiKey)` override any environment variables or configuration found in the indicorc file for any subsequent api calls, like so:
+
+```java
+Indico.setApiKey('example-api-key');
+Indico.setPrivateCloud('test-cloud');
+
+double value = Indico.text().sentiment("Bad news", config);
+System.out.println(value);
+// 0.19165873789277
+```
+
+
+ Finally, any values explicitly passed in to an api call will override configuration options set in the indicorc file, in an environment variable, or with a `Indico.setPrivateCloud(String cloud)` or `Indico.setApiKey(String apiKey)` call. These values are sent in a config map, as shown:
+
+```java
+public static final Map<String, String> config;
+static
+{
+    config = new HashMap<String, String>();
+    config.put("api_key" , "example-api-key");
+    auth.put("cloud" , "test-cloud");
+}
+
+double value = Indico.text().sentiment("Bad news", config);
+System.out.println(value);
+// 0.19165873789277
+```
+>>>>>>> c050652...     Authentication now takes apikeys instead of username and passwords

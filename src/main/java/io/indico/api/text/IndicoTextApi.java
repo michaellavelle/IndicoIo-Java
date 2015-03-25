@@ -8,7 +8,6 @@ import retrofit.Callback;
 import retrofit.RestAdapter;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
-import biz.source_code.base64Coder.Base64Coder;
 
 import io.indico.api.Config;
 import io.indico.api.exception.ExceptionFactory;
@@ -36,7 +35,7 @@ public class IndicoTextApi {
     }
 
     private IndicoTextService IndicoTextApi(String cloudUrl) {
-        String fullUrl = "http://" + cloudUrl + ".indico.domains";
+        String fullUrl = "https://" + cloudUrl + ".indico.domains";
         RestAdapter adapter = new RestAdapter.Builder()
                 .setEndpoint(fullUrl)
                 .build();
@@ -64,6 +63,8 @@ public class IndicoTextApi {
     private IndicoTextService whichTextService(Map<String, String> auth) {
         if (auth != null && auth.get("cloud") != null) {
             return IndicoTextApi(auth.get("cloud"));
+        } else if (Config.CLOUD != null) {
+            return IndicoTextApi(Config.CLOUD);
         } else {
             return this.indicoTextService;
         }
@@ -77,11 +78,11 @@ public class IndicoTextApi {
      * @param auth: a map optionally containning a username, password, and cloud url.
      * @param onResponseListener: Callback which will be called when operation ends.
      */
-    public void language(String text, Map<String, String> auth, final OnMapResponseListener<String, Map<String, Double>> onResponseListener) {
+    public void language(String text, Map<String, String> auth, final OnMapResponseListener<String, Double> onResponseListener) throws IndicoException {
         Callback<Map<String, Map<String, Double>>> callback = new Callback<Map<String, Map<String, Double>>>() {
                 @Override
                 public void success(Map<String, Map<String, Double>> stringDoubleMap, Response response) {
-                    onResponseListener.onSuccess(stringDoubleMap);
+                    onResponseListener.onSuccess(stringDoubleMap.get("results"));
                 }
 
                 @Override
@@ -91,12 +92,9 @@ public class IndicoTextApi {
             };
 
         IndicoTextService thisIndicoTextService = whichTextService(auth);
-        if (auth != null && auth.get("cloud") != null) {
-            String credentials= encodeCredentials(auth.get("username"), auth.get("password"));
-            thisIndicoTextService.language(new Text(text), credentials, callback);
-        } else {
-            thisIndicoTextService.language(new Text(text), callback);
-        }
+        String credentials= Config.findCorrectApiKey(auth.get("api_key"));
+        thisIndicoTextService.language(new Text(text), credentials, callback);
+
     }
 
     /**
@@ -107,11 +105,12 @@ public class IndicoTextApi {
      * @param auth: a map optionally containning a username, password, and cloud url.
      * @param onResponseListener: Callback which will be called when operation ends.
      */
-    public void batchLanguage(List<String> text, Map<String, String> auth, final OnMapResponseListener<String, List<Map<String, Double>>> onResponseListener){
+    public void batchLanguage(List<String> text, Map<String, String> auth,
+            final OnObjectResponseListener<List<Map<String, Double>>> onResponseListener) throws IndicoException {
         Callback<Map<String, List<Map<String, Double>>>> callback = new Callback<Map<String, List<Map<String, Double>>>>() {
                 @Override
                 public void success(Map<String, List<Map<String, Double>>> stringDoubleMap, Response response) {
-                    onResponseListener.onSuccess(stringDoubleMap);
+                    onResponseListener.onSuccess(stringDoubleMap.get("results"));
                 }
 
                 @Override
@@ -121,8 +120,14 @@ public class IndicoTextApi {
             };
 
         IndicoTextService thisIndicoTextService = whichTextService(auth);
-        String credentials= encodeCredentials(auth.get("username"), auth.get("password"));
+        String credentials= Config.findCorrectApiKey(auth.get("api_key"));
         thisIndicoTextService.batchLanguage(new TextList(text), credentials, callback);
+    }
+
+    public void batchLanguage(List<String> text, final OnObjectResponseListener<List<Map<String, Double>>> onResponseListener)
+            throws IndicoException{
+        HashMap<String, String> emptyHash = new HashMap<String, String>();
+        batchLanguage(text, emptyHash, onResponseListener);
     }
 
     /**
@@ -137,18 +142,16 @@ public class IndicoTextApi {
     public Map<String, Double> language(String text, Map<String, String> auth) throws IndicoException {
         try {
             IndicoTextService thisIndicoTextService = whichTextService(auth);
-            if (auth != null && auth.get("cloud") != null) {
-                return thisIndicoTextService.language(new Text(text), encodeCredentials(auth.get("username"), auth.get("password"))).get("results");
-            } else {
-                return thisIndicoTextService.language(new Text(text)).get("results");
-            }
+            return thisIndicoTextService.language(new Text(text), Config.findCorrectApiKey(auth.get("api_key"))).get("results");
         } catch (RetrofitError error) {
             throw ExceptionFactory.get(error);
         }
     }
 
-    public void language(String text, final OnMapResponseListener<String, Map<String, Double>> onResponseListener) {
-        language(text, null, onResponseListener);
+    public void language(String text, final OnMapResponseListener<String, Double> onResponseListener)
+            throws IndicoException{
+        HashMap<String, String> emptyHash = new HashMap<String, String>();
+        language(text, emptyHash, onResponseListener);
     }
 
     public Map<String, Double> language(String text) throws IndicoException {
@@ -167,13 +170,16 @@ public class IndicoTextApi {
     public List<Map<String, Double>> batchLanguage(List<String> text, Map<String, String> auth) throws IndicoException {
         try {
             IndicoTextService thisIndicoTextService = whichTextService(auth);
-            return thisIndicoTextService.batchLanguage(new TextList(text), encodeCredentials(auth.get("username"), auth.get("password"))).get("results");
+            return thisIndicoTextService.batchLanguage(new TextList(text), Config.findCorrectApiKey(auth.get("api_key"))).get("results");
         } catch (RetrofitError error) {
             throw ExceptionFactory.get(error);
         }
     }
 
-
+    public List<Map<String, Double>> batchLanguage(List<String> text) throws IndicoException {
+        HashMap<String, String> emptyHash = new HashMap<String, String>();
+        return batchLanguage(text, emptyHash);
+    }
 
     /**
      * Given input text, returns a probability distribution over the political alignment of the speaker.
@@ -182,11 +188,12 @@ public class IndicoTextApi {
      * @param auth: a map optionally containning a username, password, and cloud url.
      * @param onResponseListener: Callback which will be called when operation ends.
      */
-    public void politicalSentiment(String text, Map<String, String> auth, final OnMapResponseListener<String, Map<String, Double>> onResponseListener) {
+    public void politicalSentiment(String text, Map<String, String> auth,
+            final OnMapResponseListener<String, Double> onResponseListener) throws IndicoException {
         Callback<Map<String, Map<String, Double>>> callback = new Callback<Map<String, Map<String, Double>>>() {
                 @Override
                 public void success(Map<String, Map<String, Double>> stringDoubleMap, Response response) {
-                    onResponseListener.onSuccess(stringDoubleMap);
+                    onResponseListener.onSuccess(stringDoubleMap.get("results"));
                 }
 
                 @Override
@@ -196,12 +203,8 @@ public class IndicoTextApi {
             };
 
         IndicoTextService thisIndicoTextService = whichTextService(auth);
-        if (auth != null && auth.get("cloud") != null) {
-            String credentials= encodeCredentials(auth.get("username"), auth.get("password"));
-            thisIndicoTextService.politicalSentiment(new Text(text), credentials, callback);
-        } else {
-            thisIndicoTextService.politicalSentiment(new Text(text), callback);
-        }
+        String credentials= Config.findCorrectApiKey(auth.get("api_key"));
+        thisIndicoTextService.politicalSentiment(new Text(text), credentials, callback);
     }
 
     /**
@@ -211,11 +214,12 @@ public class IndicoTextApi {
      * @param auth: a map optionally containning a username, password, and cloud url.
      * @param onResponseListener: Callback which will be called when operation ends.
      */
-    public void batchPoliticalSentiment(List<String> text, Map<String, String> auth, final OnMapResponseListener<String, List<Map<String, Double>>> onResponseListener){
+    public void batchPoliticalSentiment(List<String> text, Map<String, String> auth,
+            final OnObjectResponseListener<List<Map<String, Double>>> onResponseListener) throws IndicoException {
         Callback<Map<String, List<Map<String, Double>>>> callback = new Callback<Map<String, List<Map<String, Double>>>>() {
                 @Override
                 public void success(Map<String, List<Map<String, Double>>> stringDoubleMap, Response response) {
-                    onResponseListener.onSuccess(stringDoubleMap);
+                    onResponseListener.onSuccess(stringDoubleMap.get("results"));
                 }
 
                 @Override
@@ -225,10 +229,15 @@ public class IndicoTextApi {
             };
 
         IndicoTextService thisIndicoTextService = whichTextService(auth);
-        String credentials= encodeCredentials(auth.get("username"), auth.get("password"));
+        String credentials = Config.findCorrectApiKey(auth.get("api_key"));
         thisIndicoTextService.batchPoliticalSentiment(new TextList(text), credentials, callback);
     }
 
+    public void batchPoliticalSentiment(List<String> text, final OnObjectResponseListener<List<Map<String, Double>>> onResponseListener)
+            throws IndicoException{
+        HashMap<String, String> emptyHash = new HashMap<String, String>();
+        batchPoliticalSentiment(text, emptyHash, onResponseListener);
+    }
      /**
      * Given input text, returns a probability distribution over the political alignment of the speaker.
      *
@@ -240,17 +249,14 @@ public class IndicoTextApi {
     public Map<String, Double> politicalSentiment(String text, Map<String, String> auth) throws IndicoException {
         try {
             IndicoTextService thisIndicoTextService = whichTextService(auth);
-            if (auth != null && auth.get("cloud") != null) {
-                return thisIndicoTextService.politicalSentiment(new Text(text), encodeCredentials(auth.get("username"), auth.get("password"))).get("results");
-            } else {
-                return thisIndicoTextService.politicalSentiment(new Text(text)).get("results");
-            }
+            return thisIndicoTextService.politicalSentiment(new Text(text), Config.findCorrectApiKey(auth.get("api_key"))).get("results");
         } catch (RetrofitError error) {
             throw ExceptionFactory.get(error);
         }
     }
 
-    public void politicalSentiment(String text, final OnMapResponseListener<String, Map<String, Double>> onResponseListener) {
+    public void politicalSentiment(String text,
+            final OnMapResponseListener<String, Double> onResponseListener) throws IndicoException {
         politicalSentiment(text, null, onResponseListener);
     }
 
@@ -270,7 +276,7 @@ public class IndicoTextApi {
     public List<Map<String, Double>> batchPoliticalSentiment(List<String> text, Map<String, String> auth) throws IndicoException {
         try {
             IndicoTextService thisIndicoTextService = whichTextService(auth);
-            return thisIndicoTextService.batchPoliticalSentiment(new TextList(text), encodeCredentials(auth.get("username"), auth.get("password"))).get("results");
+            return thisIndicoTextService.batchPoliticalSentiment(new TextList(text), Config.findCorrectApiKey(auth.get("api_key"))).get("results");
         } catch (RetrofitError error) {
             throw ExceptionFactory.get(error);
         }
@@ -285,11 +291,12 @@ public class IndicoTextApi {
      * @param auth: a map optionally containning a username, password, and cloud url.
      * @param onResponseListener: Callback which will be called when operation ends.
      */
-    public void textTags(String text, Map<String, String> auth, final OnMapResponseListener<String, Map<String, Double>> onResponseListener) {
+    public void textTags(String text, Map<String, String> auth,
+            final OnObjectResponseListener<Map<String, Double>> onResponseListener) throws IndicoException {
         Callback<Map<String, Map<String, Double>>> callback = new Callback<Map<String, Map<String, Double>>>() {
                 @Override
                 public void success(Map<String, Map<String, Double>> stringDoubleMap, Response response) {
-                    onResponseListener.onSuccess(stringDoubleMap);
+                    onResponseListener.onSuccess(stringDoubleMap.get("results"));
                 }
 
                 @Override
@@ -299,12 +306,8 @@ public class IndicoTextApi {
             };
 
         IndicoTextService thisIndicoTextService = whichTextService(auth);
-        if (auth != null && auth.get("cloud") != null) {
-            String credentials= encodeCredentials(auth.get("username"), auth.get("password"));
-            thisIndicoTextService.textTags(new Text(text), credentials, callback);
-        } else {
-            thisIndicoTextService.textTags(new Text(text), callback);
-        }
+        String credentials= Config.findCorrectApiKey(auth.get("api_key"));
+        thisIndicoTextService.textTags(new Text(text), credentials, callback);
     }
 
     /**
@@ -313,11 +316,12 @@ public class IndicoTextApi {
      * @param text: The text to be analyzed.
      * @param auth: a map optionally containning a username, password, and cloud url.
      */
-    public void batchTextTags(List<String> text, Map<String, String> auth, final OnMapResponseListener<String, List<Map<String, Double>>> onResponseListener){
+    public void batchTextTags(List<String> text, Map<String, String> auth,
+            final OnObjectResponseListener<List<Map<String, Double>>> onResponseListener) throws IndicoException {
         Callback<Map<String, List<Map<String, Double>>>> callback = new Callback<Map<String, List<Map<String, Double>>>>() {
                 @Override
                 public void success(Map<String, List<Map<String, Double>>> stringDoubleMap, Response response) {
-                    onResponseListener.onSuccess(stringDoubleMap);
+                    onResponseListener.onSuccess(stringDoubleMap.get("results"));
                 }
 
                 @Override
@@ -327,8 +331,14 @@ public class IndicoTextApi {
             };
 
         IndicoTextService thisIndicoTextService = whichTextService(auth);
-        String credentials= encodeCredentials(auth.get("username"), auth.get("password"));
+        String credentials= Config.findCorrectApiKey(auth.get("api_key"));
         thisIndicoTextService.batchTextTags(new TextList(text), credentials, callback);
+    }
+
+    public void batchTextTags(List<String> text, final OnObjectResponseListener<List<Map<String, Double>>> onResponseListener)
+            throws IndicoException{
+        HashMap<String, String> emptyHash = new HashMap<String, String>();
+        batchTextTags(text, emptyHash, onResponseListener);
     }
 
     /**
@@ -342,17 +352,15 @@ public class IndicoTextApi {
     public Map<String, Double> textTags(String text, Map<String, String> auth) throws IndicoException {
         try {
             IndicoTextService thisIndicoTextService = whichTextService(auth);
-            if (auth != null && auth.get("cloud") != null) {
-                return thisIndicoTextService.textTags(new Text(text), encodeCredentials(auth.get("username"), auth.get("password"))).get("results");
-            } else {
-                return thisIndicoTextService.textTags(new Text(text)).get("results");
-            }
+            return thisIndicoTextService.textTags(new Text(text), Config.findCorrectApiKey(auth.get("api_key"))).get("results");
+
         } catch (RetrofitError error) {
             throw ExceptionFactory.get(error);
         }
     }
 
-    public void textTags(String text, final OnMapResponseListener<String, Map<String, Double>> onResponseListener) {
+    public void textTags(String text,
+            final OnObjectResponseListener<Map<String, Double>> onResponseListener) throws IndicoException {
         textTags(text, null, onResponseListener);
     }
 
@@ -373,7 +381,7 @@ public class IndicoTextApi {
     public List<Map<String, Double>> batchTextTags(List<String> text, Map<String, String> auth) throws IndicoException {
         try {
             IndicoTextService thisIndicoTextService = whichTextService(auth);
-            return thisIndicoTextService.batchTextTags(new TextList(text), encodeCredentials(auth.get("username"), auth.get("password"))).get("results");
+            return thisIndicoTextService.batchTextTags(new TextList(text), Config.findCorrectApiKey(auth.get("api_key"))).get("results");
         } catch (RetrofitError error) {
             throw ExceptionFactory.get(error);
         }
@@ -391,7 +399,8 @@ public class IndicoTextApi {
      * @return Value that indicates sentiment.
      * @throws IndicoException
      */
-    public void sentiment(String text, Map<String, String> auth, final OnMapResponseListener<String, Double> onResponseListener) {
+    public void sentiment(String text, Map<String, String> auth,
+            final OnMapResponseListener<String, Double> onResponseListener) throws IndicoException {
         Callback<Map<String, Double>> callback = new Callback<Map<String, Double>>() {
                 @Override
                 public void success(Map<String, Double> stringDoubleMap, Response response) {
@@ -405,12 +414,8 @@ public class IndicoTextApi {
             };
 
         IndicoTextService thisIndicoTextService = whichTextService(auth);
-        if (auth != null && auth.get("cloud") != null) {
-            String credentials= encodeCredentials(auth.get("username"), auth.get("password"));
-            thisIndicoTextService.sentiment(new Text(text), credentials, callback);
-        } else {
-            thisIndicoTextService.sentiment(new Text(text), callback);
-        }
+        String credentials= Config.findCorrectApiKey(auth.get("api_key"));
+        thisIndicoTextService.sentiment(new Text(text), credentials, callback);
     }
 
     /**
@@ -424,7 +429,8 @@ public class IndicoTextApi {
      * @throws IndicoException
      *
      */
-    public void batchSentiment(List<String> text, Map<String, String> auth, final OnMapResponseListener<String, List<Double>> onResponseListener){
+    public void batchSentiment(List<String> text, Map<String, String> auth,
+            final OnMapResponseListener<String, List<Double>> onResponseListener) throws IndicoException {
         Callback<Map<String, List<Double>>> callback = new Callback<Map<String, List<Double>>>() {
                 @Override
                 public void success(Map<String, List<Double>> stringDoubleMap, Response response) {
@@ -438,7 +444,7 @@ public class IndicoTextApi {
             };
 
         IndicoTextService thisIndicoTextService = whichTextService(auth);
-        String credentials= encodeCredentials(auth.get("username"), auth.get("password"));
+        String credentials= Config.findCorrectApiKey(auth.get("api_key"));
         thisIndicoTextService.batchSentiment(new TextList(text), credentials, callback);
     }
 
@@ -456,17 +462,14 @@ public class IndicoTextApi {
     public Double sentiment(String text, Map<String, String> auth) throws IndicoException {
         try {
             IndicoTextService thisIndicoTextService = whichTextService(auth);
-            if (auth != null && auth.get("cloud") != null) {
-                return thisIndicoTextService.sentiment(new Text(text), encodeCredentials(auth.get("username"), auth.get("password"))).get("results");
-            } else {
-                return thisIndicoTextService.sentiment(new Text(text)).get("results");
-            }
+            return thisIndicoTextService.sentiment(new Text(text), Config.findCorrectApiKey(auth.get("api_key"))).get("results");
         } catch (RetrofitError error) {
             throw ExceptionFactory.get(error);
         }
     }
 
-    public void sentiment(String text, final OnMapResponseListener<String, Double> onResponseListener) {
+    public void sentiment(String text,
+            final OnMapResponseListener<String, Double> onResponseListener) throws IndicoException {
         sentiment(text, null, onResponseListener);
     }
 
@@ -474,7 +477,6 @@ public class IndicoTextApi {
         HashMap<String, String> emptyHash = new HashMap<String, String>();
         return sentiment(text, emptyHash);
     }
-
 
     /**
      * Given a list of input texts, returns a list of scalar estimates of the sentiments of those texts.
@@ -490,15 +492,9 @@ public class IndicoTextApi {
     public List<Double> batchSentiment(List<String> text, Map<String, String> auth) throws IndicoException {
         try {
             IndicoTextService thisIndicoTextService = whichTextService(auth);
-            return thisIndicoTextService.batchSentiment(new TextList(text), encodeCredentials(auth.get("username"), auth.get("password"))).get("results");
+            return thisIndicoTextService.batchSentiment(new TextList(text), Config.findCorrectApiKey(auth.get("api_key"))).get("results");
         } catch (RetrofitError error) {
             throw ExceptionFactory.get(error);
         }
-    }
-
-
-    private static String encodeCredentials(String username, String password) {
-        final String credentials = username + ":" + password;
-        return "Basic " + Base64Coder.encodeString(credentials);
     }
 }

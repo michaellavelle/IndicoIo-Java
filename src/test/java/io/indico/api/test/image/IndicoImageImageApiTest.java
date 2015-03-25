@@ -27,7 +27,6 @@ public class IndicoImageImageApiTest {
 
         ClassLoader classLoader = getClass().getClassLoader();
         URL defaultImage = classLoader.getResource("data/test.png");
-        File imageFile = null;
 
         try {
             img = ImageIO.read(defaultImage);
@@ -38,29 +37,28 @@ public class IndicoImageImageApiTest {
         }
     }
 
-    // UNCOMMENT WHEN BACKEND HANDLES BASE 64 ENCODING OF IMAGES
-    // @Test
-    // public void emotionalStateArraySizeTest() throws IndicoException {
-    //     Set<String> shouldBe = new HashSet<String>();
-    //     shouldBe.add("Angry");
-    //     shouldBe.add("Sad");
-    //     shouldBe.add("Fear");
-    //     shouldBe.add("Happy");
+    @Test
+    public void emotionalStateArraySizeTest() throws IndicoException {
+        Set<String> shouldBe = new HashSet<String>();
+        shouldBe.add("Angry");
+        shouldBe.add("Sad");
+        shouldBe.add("Fear");
+        shouldBe.add("Happy");
 
-    //     Map<String, Double> response = Indico.image().emotionalState(img);
+        Map<String, Double> response = Indico.image().emotionalState(img);
 
-    //     assertTrue(response.keySet().containsAll(shouldBe));
-    // }
+        assertTrue(response.keySet().containsAll(shouldBe));
+    }
 
-    // @Test
-    // public void facialFeaturesTest() throws IndicoException {
-    //     List<Double> result = Indico.image().facialFeatures(img);
-    //     assertEquals(48, result.size());
-    // }
+    @Test
+    public void facialFeaturesTest() throws IndicoException {
+        List<Double> result = Indico.image().facialFeatures(img);
+        assertEquals(48, result.size());
+    }
 
-    // @Test
-    // public void imageFeaturesResponseTest() throws IndicoException {
-    //     List<Double> result = Indico.image().imageFeatures(img);
-    //     assertEquals(2048, result.size());
-    // }
+    @Test
+    public void imageFeaturesResponseTest() throws IndicoException {
+        List<Double> result = Indico.image().imageFeatures(img);
+        assertEquals(2048, result.size());
+    }
 }

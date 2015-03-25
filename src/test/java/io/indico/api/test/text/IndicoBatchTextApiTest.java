@@ -19,8 +19,7 @@ public class IndicoBatchTextApiTest {
     static
     {
         auth = new HashMap<String, String>();
-        auth.put("username" , System.getenv("INDICO_USERNAME"));
-        auth.put("password" , System.getenv("INDICO_PASSWORD"));
+        auth.put("api_key" , System.getenv("INDICO_API_KEY"));
     }
 
     @Test

@@ -22,8 +22,7 @@ public class IndicoBatchImageApiPrivateCloudTest {
     static
     {
         auth = new HashMap<String, String>();
-        auth.put("username" , System.getenv("INDICO_USERNAME"));
-        auth.put("password" , System.getenv("INDICO_PASSWORD"));
+        auth.put("api_key" , System.getenv("INDICO_API_KEY"));
         auth.put("cloud" , "indico-test");
     }
 
@@ -34,8 +33,7 @@ public class IndicoBatchImageApiPrivateCloudTest {
         BufferedImage img = null;
 
         ClassLoader classLoader = getClass().getClassLoader();
-        URL defaultImage = classLoader.getResource("data/test.png");
-        File imageFile = null;
+        URL defaultImage = classLoader.getResource("data/test.jpg");
 
         try {
             img = ImageIO.read(defaultImage);
