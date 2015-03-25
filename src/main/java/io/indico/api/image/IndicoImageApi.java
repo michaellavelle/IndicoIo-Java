@@ -9,7 +9,6 @@ import retrofit.Callback;
 import retrofit.RestAdapter;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
-import biz.source_code.base64Coder.Base64Coder;
 
 import io.indico.api.Config;
 import io.indico.api.exception.ExceptionFactory;
@@ -38,7 +37,7 @@ public class IndicoImageApi {
     }
 
     private IndicoImageService IndicoImageApi(String cloudUrl) {
-        String fullUrl = "http://" + cloudUrl + ".indico.domains";
+        String fullUrl = "https://" + cloudUrl + ".indico.domains";
         RestAdapter adapter = new RestAdapter.Builder()
                 .setEndpoint(fullUrl)
                 .build();
@@ -64,6 +63,8 @@ public class IndicoImageApi {
     private IndicoImageService whichImageService(Map<String, String> auth) {
         if (auth != null && auth.get("cloud") != null) {
             return IndicoImageApi(auth.get("cloud"));
+        } else if (Config.CLOUD != null) {
+            return IndicoImageApi(Config.CLOUD);
         } else {
             return this.indicoImageService;
         }
@@ -80,12 +81,12 @@ public class IndicoImageApi {
      * @param responseListener Callback which will be called when operation ends.
      */
     public void facialFeatures(BufferedImage image, Map<String, String> auth, final OnObjectResponseListener<List<Double>>
-            responseListener) {
+            responseListener) throws IndicoException {
 
-        Callback<List<Double>> callback = new Callback<List<Double>>() {
+        Callback<Map<String, List<Double>>> callback = new Callback<Map<String, List<Double>>>() {
             @Override
-            public void success(List<Double> facialFeatures, Response response) {
-                responseListener.onSuccess(facialFeatures);
+            public void success(Map<String, List<Double>> facialFeatures, Response response) {
+                responseListener.onSuccess(facialFeatures.get("results"));
             }
 
             @Override
@@ -95,16 +96,14 @@ public class IndicoImageApi {
         };
 
         IndicoImageService thisIndicoImageService = whichImageService(auth);
-        if (auth != null && auth.get("cloud") != null) {
-            String credentials= encodeCredentials(auth.get("username"), auth.get("password"));
-            thisIndicoImageService.facialFeatures(new IndicoImage(image), credentials, callback);
-        } else {
-            thisIndicoImageService.facialFeatures(new IndicoImage(image), callback);
-        }
+        String credentials= Config.findCorrectApiKey(auth.get("api_key"));
+        thisIndicoImageService.facialFeatures(new IndicoImage(image), credentials, callback);
     }
 
-    public void facialFeatures(BufferedImage image, final OnObjectResponseListener<List<Double>> responseListener) {
-        facialFeatures(image, null, responseListener);
+    public void facialFeatures(BufferedImage image, final OnObjectResponseListener<List<Double>>
+        responseListener) throws IndicoException {
+        HashMap<String, String> emptyHash = new HashMap<String, String>();
+        facialFeatures(image, emptyHash, responseListener);
     }
 
     /**
@@ -118,12 +117,12 @@ public class IndicoImageApi {
      * @param responseListener Callback which will be called when operation ends.
      */
     public void batchFacialFeatures(List<BufferedImage> images, Map<String, String> auth, final OnObjectResponseListener<List<List<Double>>>
-            responseListener) {
+            responseListener) throws IndicoException {
 
-        Callback<List<List<Double>>> callback = new Callback<List<List<Double>>>() {
+        Callback<Map<String, List<List<Double>>>> callback = new Callback<Map<String, List<List<Double>>>>() {
             @Override
-            public void success(List<List<Double>> facialFeatures, Response response) {
-                responseListener.onSuccess(facialFeatures);
+            public void success(Map<String, List<List<Double>>> facialFeatures, Response response) {
+                responseListener.onSuccess(facialFeatures.get("results"));
             }
 
             @Override
@@ -134,8 +133,13 @@ public class IndicoImageApi {
 
         IndicoImageService thisIndicoImageService = whichImageService(auth);
 
-        String credentials= encodeCredentials(auth.get("username"), auth.get("password"));
+        String credentials= Config.findCorrectApiKey(auth.get("api_key"));
         thisIndicoImageService.batchFacialFeatures(new IndicoImageList(images), credentials, callback);
+    }
+
+    public void batchFacialFeatures(List<BufferedImage> images, final OnObjectResponseListener<List<List<Double>>> responseListener) throws IndicoException {
+        HashMap<String, String> emptyHash = new HashMap<String, String>();
+        batchFacialFeatures(images, emptyHash, responseListener);
     }
 
     /**
@@ -151,17 +155,13 @@ public class IndicoImageApi {
      */
     public List<Double> facialFeatures(BufferedImage image, Map<String, String> auth) throws IndicoException {
         try {
-            List<Double> facialFeatures = null;
+            Map<String, List<Double>> facialFeatures = null;
 
             IndicoImageService thisIndicoImageService = whichImageService(auth);
-            if (auth != null && auth.get("cloud") != null) {
-                String credentials= encodeCredentials(auth.get("username"), auth.get("password"));
-                facialFeatures = thisIndicoImageService.facialFeatures(new IndicoImage(image), credentials);
-            } else {
-                facialFeatures = thisIndicoImageService.facialFeatures(new IndicoImage(image));
-            }
+            String credentials= Config.findCorrectApiKey(auth.get("api_key"));
+            facialFeatures = thisIndicoImageService.facialFeatures(new IndicoImage(image), credentials);
 
-            return facialFeatures;
+            return facialFeatures.get("results");
 
         } catch (RetrofitError error) {
             throw ExceptionFactory.get(error);
@@ -186,13 +186,18 @@ public class IndicoImageApi {
      */
     public List<List<Double>> batchFacialFeatures(List<BufferedImage> images, Map<String, String> auth) throws IndicoException {
         try {IndicoImageService thisIndicoImageService = whichImageService(auth);
-            String credentials= encodeCredentials(auth.get("username"), auth.get("password"));
-            List<List<Double>> facialFeatures = thisIndicoImageService.batchFacialFeatures(new IndicoImageList(images), credentials);
+            String credentials= Config.findCorrectApiKey(auth.get("api_key"));
+            Map<String, List<List<Double>>> facialFeatures = thisIndicoImageService.batchFacialFeatures(new IndicoImageList(images), credentials);
 
-            return facialFeatures;
+            return facialFeatures.get("results");
         } catch (RetrofitError error) {
             throw ExceptionFactory.get(error);
         }
+    }
+
+    public List<List<Double>> batchFacialFeatures(List<BufferedImage> images) throws IndicoException {
+        HashMap<String, String> emptyHash = new HashMap<String, String>();
+        return batchFacialFeatures(images, emptyHash);
     }
 
 
@@ -222,12 +227,12 @@ public class IndicoImageApi {
      * @param responseListener Callback which will be called when operation ends.
      */
     public void imageFeatures(BufferedImage image, Map<String, String> auth, final OnObjectResponseListener<List<Double>>
-            responseListener) {
+            responseListener) throws IndicoException {
 
-        Callback<List<Double>> callback = new Callback<List<Double>>() {
+        Callback<Map<String, List<Double>>> callback = new Callback<Map<String, List<Double>>>() {
             @Override
-            public void success(List<Double> imageFeatures, Response response) {
-                responseListener.onSuccess(imageFeatures);
+            public void success(Map<String, List<Double>> imageFeatures, Response response) {
+                responseListener.onSuccess(imageFeatures.get("results"));
             }
 
             @Override
@@ -237,16 +242,14 @@ public class IndicoImageApi {
         };
 
         IndicoImageService thisIndicoImageService = whichImageService(auth);
-        if (auth != null && auth.get("cloud") != null) {
-            String credentials= encodeCredentials(auth.get("username"), auth.get("password"));
-            thisIndicoImageService.imageFeatures(new IndicoImage(image), credentials, callback);
-        } else {
-            thisIndicoImageService.imageFeatures(new IndicoImage(image), callback);
-        }
+        String credentials= Config.findCorrectApiKey(auth.get("api_key"));
+        thisIndicoImageService.imageFeatures(new IndicoImage(image), credentials, callback);
     }
 
-    public void imageFeatures(BufferedImage image, final OnObjectResponseListener<List<Double>> responseListener) {
-        imageFeatures(image, null, responseListener);
+    public void imageFeatures(BufferedImage image, final OnObjectResponseListener<List<Double>>
+            responseListener) throws IndicoException {
+        HashMap<String, String> emptyHash = new HashMap<String, String>();
+        imageFeatures(image, emptyHash, responseListener);
     }
 
     /**
@@ -272,12 +275,12 @@ public class IndicoImageApi {
      * @param responseListener Callback which will be called when operation ends.
      */
     public void batchImageFeatures(List<BufferedImage> images, Map<String, String> auth, final OnObjectResponseListener<List<List<Double>>>
-            responseListener) {
+            responseListener) throws IndicoException {
 
-        Callback<List<List<Double>>> callback = new Callback<List<List<Double>>>() {
+        Callback<Map<String, List<List<Double>>>> callback = new Callback<Map<String, List<List<Double>>>>() {
             @Override
-            public void success(List<List<Double>> ImageFeatures, Response response) {
-                responseListener.onSuccess(ImageFeatures);
+            public void success(Map<String, List<List<Double>>> ImageFeatures, Response response) {
+                responseListener.onSuccess(ImageFeatures.get("results"));
             }
 
             @Override
@@ -288,8 +291,14 @@ public class IndicoImageApi {
 
         IndicoImageService thisIndicoImageService = whichImageService(auth);
 
-        String credentials= encodeCredentials(auth.get("username"), auth.get("password"));
+        String credentials= Config.findCorrectApiKey(auth.get("api_key"));
         thisIndicoImageService.batchImageFeatures(new IndicoImageList(images), credentials, callback);
+    }
+
+    public void batchImageFeatures(List<BufferedImage> images, final OnObjectResponseListener<List<List<Double>>>
+            responseListener) throws IndicoException {
+        HashMap<String, String> emptyHash = new HashMap<String, String>();
+        batchImageFeatures(images, emptyHash, responseListener);
     }
 
     /**
@@ -317,17 +326,13 @@ public class IndicoImageApi {
      */
     public List<Double> imageFeatures(BufferedImage image, Map<String, String> auth) throws IndicoException {
         try {
-            List<Double> imageFeatures = null;
+            Map<String, List<Double>> imageFeatures = null;
 
             IndicoImageService thisIndicoImageService = whichImageService(auth);
-            if (auth != null && auth.get("cloud") != null) {
-                String credentials= encodeCredentials(auth.get("username"), auth.get("password"));
-                imageFeatures = thisIndicoImageService.imageFeatures(new IndicoImage(image), credentials);
-            } else {
-                imageFeatures = thisIndicoImageService.imageFeatures(new IndicoImage(image));
-            }
+            String credentials= Config.findCorrectApiKey(auth.get("api_key"));
+            imageFeatures = thisIndicoImageService.imageFeatures(new IndicoImage(image), credentials);
 
-            return imageFeatures;
+            return imageFeatures.get("results");
 
         } catch (RetrofitError error) {
             throw ExceptionFactory.get(error);
@@ -364,13 +369,18 @@ public class IndicoImageApi {
      */
     public List<List<Double>> batchImageFeatures(List<BufferedImage> images, Map<String, String> auth) throws IndicoException {
         try {IndicoImageService thisIndicoImageService = whichImageService(auth);
-            String credentials= encodeCredentials(auth.get("username"), auth.get("password"));
-            List<List<Double>> imageFeatures = thisIndicoImageService.batchImageFeatures(new IndicoImageList(images), credentials);
+            String credentials= Config.findCorrectApiKey(auth.get("api_key"));
+            Map<String, List<List<Double>>> imageFeatures = thisIndicoImageService.batchImageFeatures(new IndicoImageList(images), credentials);
 
-            return imageFeatures;
+            return imageFeatures.get("results");
         } catch (RetrofitError error) {
             throw ExceptionFactory.get(error);
         }
+    }
+
+    public List<List<Double>> batchImageFeatures(List<BufferedImage> images) throws IndicoException {
+        HashMap<String, String> emptyHash = new HashMap<String, String>();
+        return batchImageFeatures(images, emptyHash);
     }
 
 
@@ -386,7 +396,7 @@ public class IndicoImageApi {
      * @param responseListener Callback which will be called when operation ends.
      */
     public void emotionalState(BufferedImage image, Map<String, String> auth, final OnMapResponseListener<String, Double>
-            responseListener) {
+            responseListener) throws IndicoException {
 
         Callback<Map<String, Map<String, Double>>> callback = new Callback<Map<String, Map<String, Double>>>() {
             @Override
@@ -401,16 +411,14 @@ public class IndicoImageApi {
         };
 
         IndicoImageService thisIndicoImageService = whichImageService(auth);
-        if (auth != null && auth.get("cloud") != null) {
-            String credentials= encodeCredentials(auth.get("username"), auth.get("password"));
-            thisIndicoImageService.emotionalState(new IndicoImage(image), credentials, callback);
-        } else {
-            thisIndicoImageService.emotionalState(new IndicoImage(image), callback);
-        }
+        String credentials= Config.findCorrectApiKey(auth.get("api_key"));
+        thisIndicoImageService.emotionalState(new IndicoImage(image), credentials, callback);
     }
 
-    public void emotionalState(BufferedImage image, final OnMapResponseListener<String, Double> responseListener) {
-        emotionalState(image, null, responseListener);
+    public void emotionalState(BufferedImage image, final OnMapResponseListener<String, Double> responseListener)
+            throws IndicoException{
+        HashMap<String, String> emptyHash = new HashMap<String, String>();
+        emotionalState(image, emptyHash, responseListener);
     }
 
     /**
@@ -423,7 +431,7 @@ public class IndicoImageApi {
      * @param responseListener Callback which will be called when operation ends.
      */
     public void batchEmotionalState(List<BufferedImage> images, Map<String, String> auth, final OnObjectResponseListener<List<Map<String, Double>>>
-            responseListener) {
+            responseListener) throws IndicoException {
 
         Callback<Map<String, List<Map<String, Double>>>> callback = new Callback<Map<String, List<Map<String, Double>>>>() {
             @Override
@@ -439,8 +447,14 @@ public class IndicoImageApi {
 
         IndicoImageService thisIndicoImageService = whichImageService(auth);
 
-        String credentials= encodeCredentials(auth.get("username"), auth.get("password"));
+        String credentials= Config.findCorrectApiKey(auth.get("api_key"));
         thisIndicoImageService.batchEmotionalState(new IndicoImageList(images), credentials, callback);
+    }
+
+    public void batchEmotionalState(List<BufferedImage> images, final OnObjectResponseListener<List<Map<String, Double>>>
+            responseListener) throws IndicoException {
+        HashMap<String, String> emptyHash = new HashMap<String, String>();
+        batchEmotionalState(images, emptyHash, responseListener);
     }
 
     /**
@@ -458,12 +472,8 @@ public class IndicoImageApi {
             Map<String, Map<String, Double>> emotionalState = null;
 
             IndicoImageService thisIndicoImageService = whichImageService(auth);
-            if (auth != null && auth.get("cloud") != null) {
-                String credentials= encodeCredentials(auth.get("username"), auth.get("password"));
-                emotionalState = thisIndicoImageService.emotionalState(new IndicoImage(image), credentials);
-            } else {
-                emotionalState = thisIndicoImageService.emotionalState(new IndicoImage(image));
-            }
+            String credentials = Config.findCorrectApiKey(auth.get("api_key"));
+            emotionalState = thisIndicoImageService.emotionalState(new IndicoImage(image), credentials);
 
             return emotionalState.get("results");
 
@@ -488,8 +498,9 @@ public class IndicoImageApi {
      * @throws IndicoException
      */
     public List<Map<String, Double>> batchEmotionalState(List<BufferedImage> images, Map<String, String> auth) throws IndicoException {
-        try {IndicoImageService thisIndicoImageService = whichImageService(auth);
-            String credentials= encodeCredentials(auth.get("username"), auth.get("password"));
+        try {
+            IndicoImageService thisIndicoImageService = whichImageService(auth);
+            String credentials= Config.findCorrectApiKey(auth.get("api_key"));
             Map<String, List<Map<String, Double>>> emotionalState = thisIndicoImageService.batchEmotionalState(new IndicoImageList(images), credentials);
 
             return emotionalState.get("results");
@@ -498,8 +509,8 @@ public class IndicoImageApi {
         }
     }
 
-    private static String encodeCredentials(String username, String password) {
-        final String credentials = username + ":" + password;
-        return "Basic " + Base64Coder.encodeString(credentials);
+    public List<Map<String, Double>> batchEmotionalState(List<BufferedImage> images) throws IndicoException {
+        HashMap<String, String> emptyHash = new HashMap<String, String>();
+        return batchEmotionalState(images, emptyHash);
     }
 }

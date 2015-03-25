@@ -22,9 +22,7 @@ public class IndicoBatchImageApiTest {
     static
     {
         auth = new HashMap<String, String>();
-        auth.put("username" , System.getenv("INDICO_USERNAME"));
-        auth.put("password" , System.getenv("INDICO_PASSWORD"));
-        auth.put("cloud" , "indico-test");
+        auth.put("api_key" , System.getenv("INDICO_API_KEY"));
     }
 
     private List<BufferedImage> imageData;
@@ -35,7 +33,6 @@ public class IndicoBatchImageApiTest {
 
         ClassLoader classLoader = getClass().getClassLoader();
         URL defaultImage = classLoader.getResource("data/test.png");
-        File imageFile = null;
 
         try {
             img = ImageIO.read(defaultImage);

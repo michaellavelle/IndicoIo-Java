@@ -5,7 +5,7 @@
 
     <groupId>io.indico</groupId>
     <artifactId>indico</artifactId>
-    <version>1.1-SNAPSHOT</version>
+    <version>1.2-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>${project.groupId}:${project.artifactId}</name>
@@ -33,6 +33,12 @@
             <email>antnglvn@gmail.com</email>
             <timezone>UTC+3</timezone>
         </developer>
+        <developer>
+            <id>Annie</id>
+            <name>Annie Carlson</name>
+            <email>annie@indico.io</email>
+            <timezone>EST</timezone>
+        </developer>
     </developers>
 
     <distributionManagement>
@@ -54,6 +60,12 @@
             <artifactId>junit</artifactId>
             <version>4.11</version>
             <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.ini4j</groupId>
+            <artifactId>ini4j</artifactId>
+            <version>0.5.4</version>
         </dependency>
 
     </dependencies>

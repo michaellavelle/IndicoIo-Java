@@ -21,78 +21,55 @@ interface IndicoTextService {
     String PATH_TEXT_TAGS = "/texttags";
     String PATH_BATCH_TEXT_TAGS = "/texttags/batch";
 
-    @POST(PATH_LANGUAGE)
-    void language(@Body Text text, Callback<Map<String, Map<String, Double>>> callback);
 
     @POST(PATH_LANGUAGE)
-    Map<String, Map<String, Double>> language(@Body Text text);
+    void language(@Body Text text, @Header("X-ApiKey") String apiKey, Callback<Map<String, Map<String, Double>>> callback);
 
     @POST(PATH_LANGUAGE)
-    void language(@Body Text text, @Header("Authorization") String authorization, Callback<Map<String, Map<String, Double>>> callback);
-
-    @POST(PATH_LANGUAGE)
-    Map<String, Map<String, Double>> language(@Body Text text, @Header("Authorization") String authorization);
+    Map<String, Map<String, Double>> language(@Body Text text, @Header("X-ApiKey") String apiKey);
 
     @POST(PATH_BATCH_LANGUAGE)
-    void batchLanguage(@Body TextList text, @Header("Authorization") String authorization, Callback<Map<String, List<Map<String, Double>>>> callback);
+    void batchLanguage(@Body TextList text, @Header("X-ApiKey") String apiKey, Callback<Map<String, List<Map<String, Double>>>> callback);
 
     @POST(PATH_BATCH_LANGUAGE)
-    Map<String, List<Map<String, Double>>> batchLanguage(@Body TextList text, @Header("Authorization") String authorization);
+    Map<String, List<Map<String, Double>>> batchLanguage(@Body TextList text, @Header("X-ApiKey") String apiKey);
 
 
     @POST(PATH_POLITICAL)
-    void politicalSentiment(@Body Text text, Callback<Map<String, Map<String, Double>>> callback);
+    void politicalSentiment(@Body Text text, @Header("X-ApiKey") String apiKey, Callback<Map<String, Map<String, Double>>> callback);
 
     @POST(PATH_POLITICAL)
-    Map<String, Map<String, Double>> politicalSentiment(@Body Text text);
-
-    @POST(PATH_POLITICAL)
-    void politicalSentiment(@Body Text text, @Header("Authorization") String authorization, Callback<Map<String, Map<String, Double>>> callback);
-
-    @POST(PATH_POLITICAL)
-    Map<String, Map<String, Double>> politicalSentiment(@Body Text text, @Header("Authorization") String authorization);
+    Map<String, Map<String, Double>> politicalSentiment(@Body Text text, @Header("X-ApiKey") String apiKey);
 
     @POST(PATH_BATCH_POLITICAL)
-    void batchPoliticalSentiment(@Body TextList text, @Header("Authorization") String authorization, Callback<Map<String, List<Map<String, Double>>>> callback);
+    void batchPoliticalSentiment(@Body TextList text, @Header("X-ApiKey") String apiKey, Callback<Map<String, List<Map<String, Double>>>> callback);
 
     @POST(PATH_BATCH_POLITICAL)
-    Map<String, List<Map<String, Double>>> batchPoliticalSentiment(@Body TextList text, @Header("Authorization") String authorization);
+    Map<String, List<Map<String, Double>>> batchPoliticalSentiment(@Body TextList text, @Header("X-ApiKey") String apiKey);
 
 
     @POST(PATH_SENTIMENT)
-    void sentiment(@Body Text text, Callback<Map<String, Double>> callback);
+    void sentiment(@Body Text text, @Header("X-ApiKey") String apiKey, Callback<Map<String, Double>> callback);
 
     @POST(PATH_SENTIMENT)
-    Map<String, Double> sentiment(@Body Text text);
-
-    @POST(PATH_SENTIMENT)
-    void sentiment(@Body Text text, @Header("Authorization") String authorization, Callback<Map<String, Double>> callback);
-
-    @POST(PATH_SENTIMENT)
-    Map<String, Double> sentiment(@Body Text text, @Header("Authorization") String authorization);
+    Map<String, Double> sentiment(@Body Text text, @Header("X-ApiKey") String apiKey);
 
     @POST(PATH_BATCH_SENTIMENT)
-    void batchSentiment(@Body TextList text, @Header("Authorization") String authorization, Callback<Map<String, List<Double>>> callback);
+    void batchSentiment(@Body TextList text, @Header("X-ApiKey") String apiKey, Callback<Map<String, List<Double>>> callback);
 
     @POST(PATH_BATCH_SENTIMENT)
-    Map<String, List<Double>> batchSentiment(@Body TextList text, @Header("Authorization") String authorization);
+    Map<String, List<Double>> batchSentiment(@Body TextList text, @Header("X-ApiKey") String apiKey);
 
 
     @POST(PATH_TEXT_TAGS)
-    void textTags(@Body Text text, Callback<Map<String, Map<String, Double>>> callback);
+    void textTags(@Body Text text, @Header("X-ApiKey") String apiKey, Callback<Map<String, Map<String, Double>>> callback);
 
     @POST(PATH_TEXT_TAGS)
-    Map<String, Map<String, Double>> textTags(@Body Text text);
-
-    @POST(PATH_TEXT_TAGS)
-    void textTags(@Body Text text, @Header("Authorization") String authorization, Callback<Map<String, Map<String, Double>>> callback);
-
-    @POST(PATH_TEXT_TAGS)
-    Map<String, Map<String, Double>> textTags(@Body Text text, @Header("Authorization") String authorization);
+    Map<String, Map<String, Double>> textTags(@Body Text text, @Header("X-ApiKey") String apiKey);
 
     @POST(PATH_BATCH_TEXT_TAGS)
-    void batchTextTags(@Body TextList text, @Header("Authorization") String authorization, Callback<Map<String, List<Map<String, Double>>>> callback);
+    void batchTextTags(@Body TextList text, @Header("X-ApiKey") String apiKey, Callback<Map<String, List<Map<String, Double>>>> callback);
 
     @POST(PATH_BATCH_TEXT_TAGS)
-    Map<String, List<Map<String, Double>>> batchTextTags(@Body TextList text, @Header("Authorization") String authorization);
+    Map<String, List<Map<String, Double>>> batchTextTags(@Body TextList text, @Header("X-ApiKey") String apiKey);
 }

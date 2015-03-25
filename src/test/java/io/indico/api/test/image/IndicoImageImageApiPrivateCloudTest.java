@@ -22,8 +22,7 @@ public class IndicoImageImageApiPrivateCloudTest {
     static
     {
         auth = new HashMap<String, String>();
-        auth.put("username" , System.getenv("INDICO_USERNAME"));
-        auth.put("password" , System.getenv("INDICO_PASSWORD"));
+        auth.put("api_key" , System.getenv("INDICO_API_KEY"));
         auth.put("cloud" , "indico-test");
     }
 
@@ -35,7 +34,6 @@ public class IndicoImageImageApiPrivateCloudTest {
 
         ClassLoader classLoader = getClass().getClassLoader();
         URL defaultImage = classLoader.getResource("data/test.png");
-        File imageFile = null;
 
         try {
             img = ImageIO.read(defaultImage);
