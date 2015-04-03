@@ -9,6 +9,10 @@ http://indico.io
 
 Our APIs are totally free to use, and ready to be used in your application. No data or training required.
 
+Requirements
+------------
+IndicoIO-Java requires Java 7 or later to run.
+
 Documentation
 ------------
 Found [here](http://indico.readme.io/v1.0/docs)

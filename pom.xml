@@ -52,7 +52,7 @@
         <dependency>
             <groupId>com.squareup.retrofit</groupId>
             <artifactId>retrofit</artifactId>
-            <version>1.6.1</version>
+            <version>1.9.0</version>
         </dependency>
 
         <dependency>

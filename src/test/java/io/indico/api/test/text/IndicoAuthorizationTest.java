@@ -47,24 +47,11 @@ public class IndicoAuthorizationTest {
     }
 
     @Test
-    public void testJustPassingAPasswordInConfig() throws IndicoException {
+    public void testJustPassingAnApiKeyInConfig() throws IndicoException {
         try {
             List<String> textData = Arrays.asList("Just text","More Text");
             Map<String, String> auth = new HashMap<String, String>();
-            auth.put("password", "this.password.is.fake");
-            List<Map<String, Double>> response = Indico.text().batchLanguage(textData, auth);
-        } catch (IndicoException error) {
-            return;
-        }
-        fail("an indico exception was not raised");
-    }
-
-    @Test
-    public void testJustPassingAUsernameInConfig() throws IndicoException {
-        try {
-            List<String> textData = Arrays.asList("Just text","More Text");
-            Map<String, String> auth = new HashMap<String, String>();
-            auth.put("username", "this.username.is.fake");
+            auth.put("api_key", "this.api.key.is.fake");
             List<Map<String, Double>> response = Indico.text().batchLanguage(textData, auth);
         } catch (IndicoException error) {
             return;
