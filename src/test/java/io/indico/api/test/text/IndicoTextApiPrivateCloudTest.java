@@ -11,14 +11,10 @@ import java.util.Set;
 
 import static org.junit.Assert.assertTrue;
 
-public class IndicoTextApiPrivateCloudTest {
-    public static final Map<String, String> auth;
-    static
-    {
-        auth = new HashMap<String, String>();
-        auth.put("api_key" , System.getenv("INDICO_API_KEY"));
-        auth.put("cloud" , "indico-test");
-    }
+import io.indico.api.test.TestPrivateCloud;
+
+public class IndicoTextApiPrivateCloudTest extends TestPrivateCloud {
+
 
     @Test
     public void languageResponseContainsAssumptionsTest() throws IndicoException {

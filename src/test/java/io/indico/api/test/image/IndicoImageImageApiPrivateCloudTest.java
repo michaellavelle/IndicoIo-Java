@@ -13,19 +13,12 @@ import javax.imageio.ImageIO;
 import io.indico.api.Indico;
 import io.indico.api.exception.IndicoException;
 import io.indico.api.exception.ParameterException;
+import io.indico.api.test.TestPrivateCloud;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-public class IndicoImageImageApiPrivateCloudTest {
-    public static final Map<String, String> auth;
-    static
-    {
-        auth = new HashMap<String, String>();
-        auth.put("api_key" , System.getenv("INDICO_API_KEY"));
-        auth.put("cloud" , "indico-test");
-    }
-
+public class IndicoImageImageApiPrivateCloudTest extends TestPrivateCloud {
     private BufferedImage img;
 
     @Before

@@ -12,6 +12,8 @@ import io.indico.api.exception.IndicoException;
 
 public class Config{
     public final static String API_URL = "https://apiv2.indico.io";
+    public static String CLOUD_PROTOCOL = "https://";
+    public final static String CLOUD_DOMAIN =".indico.domains";
 
     private static Ini correctIniFile = correctIni();
     private static ConfigLogic configLogic = new ConfigLogic();

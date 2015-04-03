@@ -35,7 +35,7 @@ public class IndicoTextApi {
     }
 
     private IndicoTextService IndicoTextApi(String cloudUrl) {
-        String fullUrl = "https://" + cloudUrl + ".indico.domains";
+        String fullUrl = Config.CLOUD_PROTOCOL + cloudUrl + Config.CLOUD_DOMAIN;
         RestAdapter adapter = new RestAdapter.Builder()
                 .setEndpoint(fullUrl)
                 .build();
