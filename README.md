@@ -68,12 +68,12 @@ Download
 <dependency>
     <groupId>io.indico</groupId>
     <artifactId>indico</artifactId>
-    <version>1.0</version>
+    <version>1.1-SNAPSHOT</version>
 </dependency>
 ```
 or Gradle:
 ```groovy
-compile 'io.indico:indico:1.0'
+compile 'io.indico:indico:1.1-SNAPSHOT'
 ```
 
 Local
