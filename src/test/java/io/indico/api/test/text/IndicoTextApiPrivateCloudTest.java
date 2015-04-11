@@ -5,12 +5,16 @@ import io.indico.api.exception.IndicoException;
 import org.junit.Test;
 
 import java.util.HashSet;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
 import static org.junit.Assert.assertTrue;
 
-public class IndicoTextApiTest {
+import io.indico.api.test.TestPrivateCloud;
+
+public class IndicoTextApiPrivateCloudTest extends TestPrivateCloud {
+
 
     @Test
     public void languageResponseContainsAssumptionsTest() throws IndicoException {
@@ -20,14 +24,14 @@ public class IndicoTextApiTest {
         shouldBe.add("Korean");
         shouldBe.add("Spanish");
 
-        Map<String, Double> response = Indico.text().language("Just text");
+        Map<String, Double> response = Indico.text().language("Just text", auth);
 
         assertTrue(response.keySet().containsAll(shouldBe));
     }
 
     @Test
     public void languageResponseHasItemsTest() throws IndicoException {
-        Map<String, Double> response = Indico.text().language("Just text");
+        Map<String, Double> response = Indico.text().language("Just text", auth);
 
         assertTrue(response.size() > 0);
     }
@@ -40,14 +44,14 @@ public class IndicoTextApiTest {
         shouldBe.add("Conservative");
         shouldBe.add("Green");
 
-       Map<String, Double> response = Indico.text().politicalSentiment("Religion is the opium for people");
+       Map<String, Double> response = Indico.text().politicalSentiment("Religion is the opium for people", auth);
 
         assertTrue(response.keySet().containsAll(shouldBe));
     }
 
     @Test
     public void politicalResponseHasItemsTest() throws IndicoException {
-        Map<String, Double> response = Indico.text().politicalSentiment("Religion is the opium for people");
+        Map<String, Double> response = Indico.text().politicalSentiment("Religion is the opium for people", auth);
 
         assertTrue(response.size() > 0);
     }
@@ -60,21 +64,21 @@ public class IndicoTextApiTest {
         shouldBe.add("science");
         shouldBe.add("fitness");
 
-        Map<String, Double> response = Indico.text().textTags("What am I talking about?");
+        Map<String, Double> response = Indico.text().textTags("What am I talking about?", auth);
 
         assertTrue(response.keySet().containsAll(shouldBe));
     }
 
     @Test
     public void textTagsResponseHasItemsTest() throws IndicoException {
-        Map<String, Double> response = Indico.text().textTags("What am I talking about?");
+        Map<String, Double> response = Indico.text().textTags("What am I talking about?", auth);
 
         assertTrue(response.size() > 0);
     }
 
     @Test
     public void sentimentResponseLimitsTest() throws IndicoException {
-        double value = Indico.text().sentiment("Bad news");
+        double value = Indico.text().sentiment("Bad news", auth);
 
         assertTrue(value >= 0);
         assertTrue(value <= 0.5);

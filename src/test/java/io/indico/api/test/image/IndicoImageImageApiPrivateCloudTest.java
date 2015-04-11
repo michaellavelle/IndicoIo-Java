@@ -1,24 +1,24 @@
 package io.indico.api.test.image;
 
-import java.io.File;
 import java.util.*;
-import java.io.IOException;
-import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.net.URL;
-import java.net.URISyntaxException;
+import java.io.File;
+import java.io.IOException;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import org.junit.Test;
+import org.junit.Before;
+import javax.imageio.ImageIO;
 
 import io.indico.api.Indico;
 import io.indico.api.exception.IndicoException;
 import io.indico.api.exception.ParameterException;
-import org.junit.Test;
-import org.junit.Before;
+import io.indico.api.test.TestPrivateCloud;
 
-public class IndicoImageImageApiTest {
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
+public class IndicoImageImageApiPrivateCloudTest extends TestPrivateCloud {
     private BufferedImage img;
 
     @Before
@@ -45,20 +45,20 @@ public class IndicoImageImageApiTest {
         shouldBe.add("Fear");
         shouldBe.add("Happy");
 
-        Map<String, Double> response = Indico.image().emotionalState(img);
+        Map<String, Double> response = Indico.image().emotionalState(img, auth);
 
         assertTrue(response.keySet().containsAll(shouldBe));
     }
 
     @Test
     public void facialFeaturesTest() throws IndicoException {
-        List<Double> result = Indico.image().facialFeatures(img);
+        List<Double> result = Indico.image().facialFeatures(img, auth);
         assertEquals(48, result.size());
     }
 
     @Test
     public void imageFeaturesResponseTest() throws IndicoException {
-        List<Double> result = Indico.image().imageFeatures(img);
+        List<Double> result = Indico.image().imageFeatures(img, auth);
         assertEquals(2048, result.size());
     }
 }
