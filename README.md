@@ -16,12 +16,12 @@ Download
 <dependency>
     <groupId>io.indico</groupId>
     <artifactId>indico</artifactId>
-    <version>2.0</version>
+    <version>1.2-SNAPSHOT</version>
 </dependency>
 ```
 or Gradle:
 ```groovy
-compile 'io.indico:indico:2.0'
+compile 'io.indico:indico:1.2-SNAPSHOT'
 ```
 
 API Keys + Setup
@@ -95,4 +95,4 @@ assertTrue(value.get(1) >= 0.5);
 assertTrue(value.get(1) <= 1);
 ```
 
-[1]: https://oss.sonatype.org/content/repositories/snapshots/io/indico/indico/1.1-SNAPSHOT/indico-1.1-20150407.205410-4.jar
+[1]: https://oss.sonatype.org/content/repositories/snapshots/io/indico/indico/1.2-SNAPSHOT/indico-1.2-20150411.202824-4-jar-with-dependencies.jar
